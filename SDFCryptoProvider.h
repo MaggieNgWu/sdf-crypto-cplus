@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <list>
 #include <string>
+#include <cstring>
 using namespace std;
 namespace dev
 {
