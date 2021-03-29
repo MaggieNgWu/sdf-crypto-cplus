@@ -265,47 +265,47 @@ char * SDFCryptoProvider::GetErrorMessage(unsigned int code)
     switch (code)
     {
     case SDR_OK:
-        return "success";
+        return (char *)"success";
     case SDR_UNKNOWERR:
-        return "unknown error";
+        return (char *)"unknown error";
     case SDR_NOTSUPPORT:
-        return "not support";
+        return (char *)"not support";
     case SDR_COMMFAIL:
-        return "communication failed";
+        return (char *)"communication failed";
     case SDR_OPENDEVICE:
-        return "failed open device";
+        return (char *)"failed open device";
     case SDR_OPENSESSION:
-        return "failed open session";
+        return (char *)"failed open session";
     case SDR_PARDENY:
-        return "permission deny";
+        return (char *)"permission deny";
     case SDR_KEYNOTEXIST:
-        return "key not exit";
+        return (char *)"key not exit";
     case SDR_ALGNOTSUPPORT:
-        return "algorithm not support";
+        return (char *)"algorithm not support";
     case SDR_ALGMODNOTSUPPORT:
-        return "algorithm not support mode";
+        return (char *)"algorithm not support mode";
     case SDR_PKOPERR:
-        return "public key calculate error";
+        return (char *)"public key calculate error";
     case SDR_SKOPERR:
-        return "private key calculate error";
+        return (char *)"private key calculate error";
     case SDR_SIGNERR:
-        return "signature error";
+        return (char *)"signature error";
     case SDR_VERIFYERR:
-        return "verify signature error";
+        return (char *)"verify signature error";
     case SDR_SYMOPERR:
-        return "symmetric crypto calculate error";
+        return (char *)"symmetric crypto calculate error";
     case SDR_STEPERR:
-        return "step error";
+        return (char *)"step error";
     case SDR_FILESIZEERR:
-        return "file size error";
+        return (char *)"file size error";
     case SDR_FILENOEXIST:
-        return "file not exist";
+        return (char *)"file not exist";
     case SDR_FILEOFSERR:
-        return "file offset error";
+        return (char *)"file offset error";
     case SDR_KEYTYPEERR:
-        return "key type not right";
+        return (char *)"key type not right";
     case SDR_KEYERR:
-        return "key error";
+        return (char *)"key error";
     default:
         string err = "unkown code " + std::to_string(code);
         return (char *)err.c_str();
