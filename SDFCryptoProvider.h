@@ -20,7 +20,9 @@
  */
 #pragma once
 #include "libsdf/swsds.h"
-
+#include <stdio.h>
+#include <cstdlib>
+#include <list>
 using namespace std;
 namespace dev
 {

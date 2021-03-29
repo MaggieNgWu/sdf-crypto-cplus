@@ -4,7 +4,7 @@ project(test-sdf-crypto VERSION "0.1.0")
 set(CMAKE_CXX_STANDARD 11) 
 #set(SDF_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}/cmake" CACHE PATH "The path to the cmake directory")
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${SDF_CMAKE_DIR}/build/out)
-
+#set(CMAKE_CXX_FLAGS "-std=c++11")
 # file("SDFCryptoProvider.cpp")
 # file("SDFCryptoProvider.h")
 # file("libsdf/swsds.h"
