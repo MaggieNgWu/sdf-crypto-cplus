@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <list>
+#include <string>
 using namespace std;
 namespace dev
 {
@@ -64,6 +65,10 @@ public:
         m_publicKey = (char*)malloc(len * sizeof(char));
         strncpy((char*)m_publicKey, (char*)publicKey, len);
     };
+    ~Key(){
+        free(m_privateKey);
+        free(m_publicKey);
+    }
 
 private:
     unsigned int m_keyIndex;
