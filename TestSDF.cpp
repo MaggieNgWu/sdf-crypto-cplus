@@ -82,13 +82,13 @@ int main(int, const char* argv[]){
     cout << "****Sign****" << endl;
     char * signature = (char *)malloc(64*sizeof(char));
     unsigned int len;
-    provider.Sign(key,SM2,out,32,signature,&len);
+    provider.Sign(key,SM2,(char *)bHashResult,32,signature,&len);
     cout << provider.GetErrorMessage(code) << endl;
     PrintData((char *)"signature",signature,64,16);
 
     cout << "****Verify****" << endl;
     bool result;
-    code = provider.Verify(key,SM2,out,32,signature,64,&result);
+    code = provider.Verify(key,SM2,(char *)bHashResult,32,signature,64,&result);
     cout << provider.GetErrorMessage(code) << endl;
     cout <<"verify result"<< result<<endl;
 
