@@ -58,12 +58,12 @@ public:
     void setPrivateKey(char* privateKey, unsigned int len)
     {
         m_privateKey = (char*)malloc(len * sizeof(char));
-        strncpy((char*)m_privateKey, (char*)privateKey, len);
+        std::strncpy((char*)m_privateKey, (char*)privateKey, len);
     };
     void setPublicKey(char* publicKey, unsigned int len)
     {
         m_publicKey = (char*)malloc(len * sizeof(char));
-        strncpy((char*)m_publicKey, (char*)publicKey, len);
+        std::strncpy((char*)m_publicKey, (char*)publicKey, len);
     };
     ~Key(){
         free(m_privateKey);
@@ -161,21 +161,22 @@ public:
 };
 
 class TypeHelper{
-    unsigned int * NewUintPointer(){
+public:
+    static unsigned int & NewUintPointer(){
         unsigned int i;
-        return &i;
+        return i;
     }
 
-    unsigned int GetUintValue(unsigned int * data){
+    static unsigned int GetUintValue(unsigned int * data){
         return *data;
     }
 
-    bool* NewBoolPointer(){
+    static bool & NewBoolPointer(){
         bool i;
-        return &i;
+        return i;
     }
 
-    bool GetBoolValue(bool * data){
+    static bool GetBoolValue(bool * data){
         return *data;
     }
 };
