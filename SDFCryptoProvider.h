@@ -166,6 +166,7 @@ public:
     unsigned int i;
     bool b;
     unsigned char * data;
+    int charLen;
     unsigned int * NewUintPointer(){
         return &i;
     }
@@ -182,12 +183,34 @@ public:
         return b;
     }
     unsigned char * NewUcharPoint(int len){
+        charLen = len;
         unsigned char d[len];
         data = d;
         return data; 
     }
-    char * GetUcharValue(){
-        return (char *)data;
+    char * GetUcharHexValue(){
+        return toHex(data,charLen);
+    }
+
+    char * GetUcharHexValue(unsigned char* ucharString, int len){
+        return toHex(ucharString,len);
+    }
+
+private:
+    char* toHex(unsigned char *  data, int len)
+    {
+        
+        static char const* hexdigits = "0123456789abcdef";
+        std::string hex(len * 2, '0');
+        int position = 0;
+        for (int i = 0; i < len; i++)
+        {
+            hex[position++] = hexdigits[(data[i] >> 4) & 0x0f];
+            hex[position++] = hexdigits[data[i] & 0x0f];
+        }
+        char * c_hex = new char[len * 2 +1];
+        strcpy(c_hex,hex.c_str());
+        return c_hex;
     }
 };
 
