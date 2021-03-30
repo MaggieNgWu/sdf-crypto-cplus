@@ -90,7 +90,7 @@ SDFCryptoProvider& SDFCryptoProvider::GetInstance()
 }
 
 unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
-    char const* digest, unsigned int const digestLen, char* signature,
+    char const* digest, unsigned int const digestLen, unsigned char* signature,
     unsigned int* signatureLen)
 {
     switch (algorithm)
@@ -148,7 +148,7 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
 }
 
 unsigned int SDFCryptoProvider::Hash(Key*, AlgorithmType algorithm, char const* message,
-    unsigned int const messageLen, char* digest, unsigned int* digestLen)
+    unsigned int const messageLen, unsigned char* digest, unsigned int* digestLen)
 {
     switch (algorithm)
     {
@@ -169,7 +169,7 @@ unsigned int SDFCryptoProvider::Hash(Key*, AlgorithmType algorithm, char const* 
             return code;
         }
 
-        code = SDF_HashFinal(sessionHandle, (SGD_UCHAR*)digest, digestLen);
+        code = SDF_HashFinal(sessionHandle, digest, digestLen);
         if (code != SDR_OK)
         {
             m_sessionPool->ReturnSession(sessionHandle);
@@ -184,7 +184,7 @@ unsigned int SDFCryptoProvider::Hash(Key*, AlgorithmType algorithm, char const* 
 }
 unsigned int SDFCryptoProvider::HashWithZ(Key*, AlgorithmType algorithm, char const* zValue,
     unsigned int const zValueLen, char const* message, unsigned int const messageLen,
-    char* digest, unsigned int* digestLen)
+    unsigned char* digest, unsigned int* digestLen)
 {
     switch (algorithm)
     {
@@ -211,7 +211,7 @@ unsigned int SDFCryptoProvider::HashWithZ(Key*, AlgorithmType algorithm, char co
             return code;
         }
 
-        code = SDF_HashFinal(sessionHandle, (SGD_UCHAR*)digest, digestLen);
+        code = SDF_HashFinal(sessionHandle, digest, digestLen);
         if (code != SDR_OK)
         {
             m_sessionPool->ReturnSession(sessionHandle);

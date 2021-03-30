@@ -124,7 +124,7 @@ public:
      * Sign
      */
     unsigned int Sign(Key const& key, AlgorithmType algorithm, char const* digest,
-        unsigned int const digestLen, char* signature, unsigned int* signatureLen);
+        unsigned int const digestLen, unsigned char* signature, unsigned int* signatureLen);
 
     /**
      * Verify signature
@@ -137,26 +137,26 @@ public:
      * Make hash
      */
     unsigned int Hash(Key* key, AlgorithmType algorithm, char const* message,
-        unsigned int const messageLen, char* digest, unsigned int* digestLen);
+        unsigned int const messageLen, unsigned char*  digest, unsigned int* digestLen);
 
     /**
      * Encrypt
      */
     unsigned int Encrypt(Key const& key, AlgorithmType algorithm, char const* plantext,
-        unsigned int const plantextLen, char* cyphertext, unsigned int* cyphertextLen);
+        unsigned int const plantextLen, unsigned char* cyphertext, unsigned int* cyphertextLen);
 
     /**
      * Decrypt
      */
     unsigned int Decrypt(Key const& key, AlgorithmType algorithm, char const* cyphertext,
-        unsigned int const cyphertextLen, char* plantext, unsigned int* plantextLen);
+        unsigned int const cyphertextLen, unsigned char* plantext, unsigned int* plantextLen);
 
     /**
      * Make sm3 hash with z value
      */
     unsigned int HashWithZ(Key* key, AlgorithmType algorithm, char const* zValue,
         unsigned int const zValueLen, char const* message, unsigned int const messageLen,
-        char* digest, unsigned int* digestLen);
+        unsigned char* digest, unsigned int* digestLen);
 
     static char * GetErrorMessage(unsigned int code);
 };
@@ -165,6 +165,7 @@ class TypeHelper{
 public:
     unsigned int i;
     bool b;
+    unsigned char * data;
     unsigned int * NewUintPointer(){
         return &i;
     }
@@ -179,6 +180,14 @@ public:
 
     bool GetBoolValue(){
         return b;
+    }
+    unsigned char * NewUcharPoint(int len){
+        unsigned char d[len];
+        data = d;
+        return data; 
+    }
+    char * GetUcharValue(){
+        return (char *)data;
     }
 };
 
