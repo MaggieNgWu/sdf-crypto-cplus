@@ -240,7 +240,7 @@ public:
 //         return c_hex;
 //     }
 // };
-SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,bool result,char * hash,char * sdfErrorMessage);
+SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,bool result,char * hash,unsigned int code);
 char * toHex(unsigned char *data, int len);
 int PrintData(char*,unsigned char*,unsigned int, unsigned int);
 }  // namespace crypto
