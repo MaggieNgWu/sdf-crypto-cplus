@@ -59,12 +59,12 @@ public:
     void setPrivateKey(char* privateKey, unsigned int len)
     {
         m_privateKey = (char*)malloc(len * sizeof(char));
-        std::strncpy((char*)m_privateKey, (char*)privateKey, len);
+        memcpy(m_privateKey, privateKey, 32);
     };
     void setPublicKey(char* publicKey, unsigned int len)
     {
         m_publicKey = (char*)malloc(len * sizeof(char));
-        std::strncpy((char*)m_publicKey, (char*)publicKey, len);
+        memcpy(m_publicKey, publicKey, len);
     };
     ~Key(){
         free(m_privateKey);
