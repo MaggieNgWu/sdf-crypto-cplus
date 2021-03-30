@@ -168,6 +168,14 @@ public:
     static char * GetErrorMessage(unsigned int code);
 };
 
+struct SDFCryptoResult{
+    char * signature;
+    char * publicKey;
+    char * privateKey;
+    bool result;
+    char * hash;
+    char * sdfErrorMessage;
+};
 class SDFCrypto{
 public:
     SDFCryptoResult KeyGen(AlgorithmType algorithm);
@@ -177,14 +185,7 @@ public:
     SDFCryptoResult HashWithZ(Key *key, AlgorithmType algorithm, char const* message,int messageLen);
 };
 
-struct SDFCryptoResult{
-    char * signature;
-    char * publicKey;
-    char * privateKey;
-    bool result;
-    char * hash;
-    char * sdfErrorMessage;
-};
+
 
 // class TypeHelper{
 // public:
