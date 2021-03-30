@@ -133,14 +133,14 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
             m_sessionPool->ReturnSession(sessionHandle);
             return result;
         }
-	dev::crypto::PrintData("public key x ",pk.x,32,16);
-	dev::crypto::PrintData("public key y ",pk.y,32,16);
-	dev::crypto::PrintData("private key y ",sk.D,32,16);
-        std::basic_string<unsigned char> pk_x = pk.x;
-        std::basic_string<unsigned char> pk_y = pk.y;
-        std::basic_string<unsigned char> pk_xy = pk_x + pk_y;
-        key->setPrivateKey(sk.D, sk.bits / 8);
-        key->setPublicKey((unsigned char *)pk_xy.c_str(), pk.bits / 4);
+        unsigned char pk_xy[64];
+        memcpy(pk_xy,pk.x,32);
+        memcpy(pk_xy+32,pk.y,32);
+        dev::crypto::PrintData("public key x ",pk.x,32,16);
+        dev::crypto::PrintData("public key y ",pk.y,32,16);
+        dev::crypto::PrintData("private key y ",sk.D,32,16);
+        key->setPrivateKey(sk.D, 32);
+        key->setPublicKey(pk_xy, 64);
         m_sessionPool->ReturnSession(sessionHandle);
         return SDR_OK;
     }
