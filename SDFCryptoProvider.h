@@ -130,39 +130,39 @@ public:
     /**
      * Sign
      */
-    unsigned int Sign(Key const& key, AlgorithmType algorithm, char const* digest,
+    unsigned int Sign(Key const& key, AlgorithmType algorithm, unsigned char const* digest,
         unsigned int const digestLen, unsigned char* signature, unsigned int* signatureLen);
 
     /**
      * Verify signature
      */
-    unsigned int Verify(Key const& key, AlgorithmType algorithm, char const* digest,
-        unsigned int const digestLen, char const* signature,
+    unsigned int Verify(Key const& key, AlgorithmType algorithm, unsigned char const* digest,
+        unsigned int const digestLen, unsigned char const* signature,
         unsigned int const signatureLen, bool* result);
 
     /**
      * Make hash
      */
-    unsigned int Hash(Key* key, AlgorithmType algorithm, char const* message,
+    unsigned int Hash(Key* key, AlgorithmType algorithm, unsigned char const* message,
         unsigned int const messageLen, unsigned char*  digest, unsigned int* digestLen);
 
     /**
      * Encrypt
      */
-    unsigned int Encrypt(Key const& key, AlgorithmType algorithm, char const* plantext,
+    unsigned int Encrypt(Key const& key, AlgorithmType algorithm, unsigned char const* plantext,
         unsigned int const plantextLen, unsigned char* cyphertext, unsigned int* cyphertextLen);
 
     /**
      * Decrypt
      */
-    unsigned int Decrypt(Key const& key, AlgorithmType algorithm, char const* cyphertext,
+    unsigned int Decrypt(Key const& key, AlgorithmType algorithm, unsigned char const* cyphertext,
         unsigned int const cyphertextLen, unsigned char* plantext, unsigned int* plantextLen);
 
     /**
      * Make sm3 hash with z value
      */
-    unsigned int HashWithZ(Key* key, AlgorithmType algorithm, char const* zValue,
-        unsigned int const zValueLen, char const* message, unsigned int const messageLen,
+    unsigned int HashWithZ(Key* key, AlgorithmType algorithm, unsigned char const* zValue,
+        unsigned int const zValueLen, unsigned char const* message, unsigned int const messageLen,
         unsigned char* digest, unsigned int* digestLen);
 
     static char * GetErrorMessage(unsigned int code);
@@ -242,6 +242,8 @@ public:
 // };
 SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,bool result,char * hash,unsigned int code);
 char * toHex(unsigned char *data, int len);
+unsigned char * fromHex(char * hexString);
+int fromHexChar(char _i);
 int PrintData(char*,unsigned char*,unsigned int, unsigned int);
 }  // namespace crypto
 }  // namespace dev

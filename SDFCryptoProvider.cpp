@@ -89,7 +89,7 @@ SDFCryptoProvider& SDFCryptoProvider::GetInstance()
 }
 
 unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
-    char const* digest, unsigned int const digestLen, unsigned char* signature,
+    unsigned char const* digest, unsigned int const digestLen, unsigned char* signature,
     unsigned int* signatureLen)
 {
     switch (algorithm)
@@ -146,7 +146,7 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
     }
 }
 
-unsigned int SDFCryptoProvider::Hash(Key*, AlgorithmType algorithm, char const* message,
+unsigned int SDFCryptoProvider::Hash(Key*, AlgorithmType algorithm, unsigned char const* message,
     unsigned int const messageLen, unsigned char* digest, unsigned int* digestLen)
 {
     switch (algorithm)
@@ -181,8 +181,8 @@ unsigned int SDFCryptoProvider::Hash(Key*, AlgorithmType algorithm, char const* 
         return SDR_ALGNOTSUPPORT;
     }
 }
-unsigned int SDFCryptoProvider::HashWithZ(Key*, AlgorithmType algorithm, char const* zValue,
-    unsigned int const zValueLen, char const* message, unsigned int const messageLen,
+unsigned int SDFCryptoProvider::HashWithZ(Key*, AlgorithmType algorithm, unsigned char const* zValue,
+    unsigned int const zValueLen, unsigned char const* message, unsigned int const messageLen,
     unsigned char* digest, unsigned int* digestLen)
 {
     switch (algorithm)
@@ -225,7 +225,7 @@ unsigned int SDFCryptoProvider::HashWithZ(Key*, AlgorithmType algorithm, char co
 }
 
 unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
-    char const* digest, unsigned int const digestLen, char const* signature,
+    unsigned char const* digest, unsigned int const digestLen, unsigned char const* signature,
     const unsigned int signatureLen, bool* result)
 {
     switch (algorithm)
@@ -326,13 +326,13 @@ SDFCryptoResult SDFCrypto::Sign(Key const& key, AlgorithmType algorithm, char co
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));
     unsigned int len;
-    unsigned int code = provider.Sign(key,algorithm,digest,(unsigned int)digestLen,signature,&len);
+    unsigned int code = provider.Sign(key,algorithm,fromHex((char *)digest),(unsigned int)digestLen,signature,&len);
     return makeResult(toHex(signature,len),nullptr,nullptr,false,nullptr,code);
 }
 SDFCryptoResult SDFCrypto::Verify(Key const& key, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen){
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     bool isValid;
-    unsigned int code = provider.Verify(key,algorithm,digest,(unsigned int)digestLen,signature,(unsigned int)signatureLen,&isValid);
+    unsigned int code = provider.Verify(key,algorithm,fromHex((char *)digest),(unsigned int)digestLen,fromHex((char *)signature),(unsigned int)signatureLen,&isValid);
     SDFCryptoResult result;
     return makeResult(nullptr,nullptr,nullptr,isValid,nullptr,code);
 }
@@ -342,7 +342,7 @@ SDFCryptoResult SDFCrypto::Hash(Key *key, AlgorithmType algorithm, char const* m
     bool isValid;
     unsigned char hashResult[32];
     unsigned int len;
-    unsigned int code = provider.Hash(key,algorithm,message,messageLen,hashResult,&len);
+    unsigned int code = provider.Hash(key,algorithm,fromHex((char *)message),messageLen,hashResult,&len);
     PrintData("Hash result: ",hashResult,32,16);
     return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code);
 }
@@ -352,7 +352,7 @@ SDFCryptoResult SDFCrypto::HashWithZ(Key *key, AlgorithmType algorithm, char con
     bool isValid;
     unsigned char hashResult[32];
     unsigned int len;
-    unsigned int code = provider.Hash(key,algorithm,message,messageLen,hashResult,&len);
+    unsigned int code = provider.Hash(key,algorithm,fromHex((char *)message),messageLen,hashResult,&len);
     return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code);
 }
 
@@ -384,6 +384,39 @@ char* toHex(unsigned char *data, int len)
     char * c_hex = new char[len * 2 +1];
     strcpy(c_hex,hex.c_str());
     return c_hex;
+}
+
+unsigned char * fromHex(char * hexString){
+    size_t len = strlen(hexString);
+    unsigned s = (len>= 2 && hexString[0] == '0' && hexString[1] == 'x') ? 2 : 0;
+    unsigned char c_str[(len-s)/2];
+    if(len%2){
+        throw "bad hex string";
+    }
+    int position =0;
+    for (unsigned i = s; i < len; i += 2)
+    {
+        int h = fromHexChar(hexString[i]);
+        int l = fromHexChar(hexString[i + 1]);
+
+        if (h != -1 && l != -1){
+            c_str[position++] = h * 16 + l;
+        }else{
+            throw "bad hex string";
+        }  
+    }
+    return c_str;
+}
+
+int fromHexChar(char _i)
+{
+    if (_i >= '0' && _i <= '9')
+        return _i - '0';
+    if (_i >= 'a' && _i <= 'f')
+        return _i - 'a' + 10;
+    if (_i >= 'A' && _i <= 'F')
+        return _i - 'A' + 10;
+    return -1;
 }
 
 int PrintData(char *itemName, unsigned char *sourceData, unsigned int dataLength, unsigned int rowCount)
