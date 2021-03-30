@@ -310,8 +310,10 @@ char * SDFCryptoProvider::GetErrorMessage(unsigned int code)
     case SDR_KEYERR:
         return (char *)"key error";
     default:
-        string err = "unkown code " + std::to_string(code);
-        return (char *)err.c_str();
+	std::string err = "unkown code " + std::to_string(code);
+	char * c_err = new char[err.length()+1];
+	strcpy(c_err,err.c_str());
+	return c_err;
     }
 }
 
