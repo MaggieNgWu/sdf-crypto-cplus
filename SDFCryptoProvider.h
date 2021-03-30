@@ -37,17 +37,20 @@ enum AlgorithmType : uint32_t
     SM3 = 0x00000001,      // SGD_SM3
     SM4_CBC = 0x00002002,  // SGD_SM4_CBC
 };
-int PrintData(char*,unsigned char*,unsigned int, unsigned int);
 class Key
 {
 public:
     unsigned char * PublicKey() const { return m_publicKey; }
     unsigned char * PrivateKey() const { return m_privateKey; }
+    int PublicKeyLen() const { return m_publicKeyLen; }
+    int PrivateKeyLen() const { return m_privateKeyLen; }
     Key(void){};
-    Key(unsigned char* privateKey, unsigned char* publicKey)
+    Key(unsigned char* privateKey,int privateKeyLen, unsigned char* publicKey, int publicKeyLen)
     {
         m_privateKey = privateKey;
+        m_privateKeyLen = privateKeyLen;
         m_publicKey = publicKey;
+        m_publicKeyLen = publicKeyLen;
     };
     Key(const unsigned int keyIndex, char *& password)
     {
@@ -60,11 +63,13 @@ public:
     {
         m_privateKey = (unsigned char*)malloc(len * sizeof(char));
         memcpy(m_privateKey, privateKey, len);
+        m_privateKeyLen = len;
     };
     void setPublicKey(unsigned char* publicKey, unsigned int len)
     {
         m_publicKey = (unsigned char*)malloc(len * sizeof(char));
         memcpy(m_publicKey, publicKey, len);
+        m_publicKeyLen = len;
     };
     ~Key(){
         free(m_privateKey);
@@ -76,6 +81,8 @@ private:
     char * m_keyPassword;
     unsigned char * m_privateKey;
     unsigned char * m_publicKey;
+    int m_privateKeyLen;
+    int m_publicKeyLen;
 };
 
 class SessionPool
@@ -161,58 +168,77 @@ public:
     static char * GetErrorMessage(unsigned int code);
 };
 
-class TypeHelper{
+class SDFCrypto{
 public:
-    unsigned int i;
-    bool b;
-    unsigned char * data;
-    int charLen;
-    unsigned int * NewUintPointer(){
-        return &i;
-    }
-
-    unsigned int GetUintValue(){
-        return i;
-    }
-
-    bool * NewBoolPointer(){
-        return &b;
-    }
-
-    bool GetBoolValue(){
-        return b;
-    }
-    unsigned char * NewUcharPoint(int len){
-        charLen = len;
-        unsigned char d[len];
-        data = d;
-        return data; 
-    }
-    char * GetUcharHexValue(){
-        return toHex(data,charLen);
-    }
-
-    char * GetUcharHexValue(unsigned char* ucharString, int len){
-        return toHex(ucharString,len);
-    }
-
-private:
-    char* toHex(unsigned char *  data, int len)
-    {
-        
-        static char const* hexdigits = "0123456789abcdef";
-        std::string hex(len * 2, '0');
-        int position = 0;
-        for (int i = 0; i < len; i++)
-        {
-            hex[position++] = hexdigits[(data[i] >> 4) & 0x0f];
-            hex[position++] = hexdigits[data[i] & 0x0f];
-        }
-        char * c_hex = new char[len * 2 +1];
-        strcpy(c_hex,hex.c_str());
-        return c_hex;
-    }
+    SDFCryptoResult KeyGen(AlgorithmType algorithm);
+    SDFCryptoResult Sign(Key const& key, AlgorithmType algorithm, char const* digest, int digestLen);
+    SDFCryptoResult Verify(Key const& key, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen);
+    SDFCryptoResult Hash(Key *key, AlgorithmType algorithm, char const* message,int messageLen);
+    SDFCryptoResult HashWithZ(Key *key, AlgorithmType algorithm, char const* message,int messageLen);
 };
 
+struct SDFCryptoResult{
+    char * signature;
+    char * publicKey;
+    char * privateKey;
+    bool result;
+    char * hash;
+    char * sdfErrorMessage;
+};
+
+// class TypeHelper{
+// public:
+//     unsigned int i;
+//     bool b;
+//     unsigned char *data;
+//     int charLen;
+//     unsigned int * NewUintPointer(){
+//         return &i;
+//     }
+
+//     unsigned int GetUintValue(){
+//         return i;
+//     }
+
+//     bool * NewBoolPointer(){
+//         return &b;
+//     }
+
+//     bool GetBoolValue(){
+//         return b;
+//     }
+//     unsigned char * NewUcharPoint(int len){
+//         charLen = len;
+//         unsigned char d[len];
+//         data = d;
+//         return data; 
+//     }
+//     char * GetUcharHexValue(){
+//         return toHex(data,charLen);
+//     }
+
+//     char * GetUcharHexValue(unsigned char* ucharString, int len){
+//         return toHex(ucharString,len);
+//     }
+
+// private:
+//     char* toHex(unsigned char *data, int len)
+//     {
+        
+//         static char const* hexdigits = "0123456789abcdef";
+//         std::string hex(len * 2, '0');
+//         int position = 0;
+//         for (int i = 0; i < len; i++)
+//         {
+//             hex[position++] = hexdigits[(data[i] >> 4) & 0x0f];
+//             hex[position++] = hexdigits[data[i] & 0x0f];
+//         }
+//         char * c_hex = new char[len * 2 +1];
+//         strcpy(c_hex,hex.c_str());
+//         return c_hex;
+//     }
+// };
+char * toHex(unsigned char *data, int len);
+int PrintData(char*,unsigned char*,unsigned int, unsigned int);
 }  // namespace crypto
 }  // namespace dev
