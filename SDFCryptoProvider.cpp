@@ -320,39 +320,21 @@ SDFCryptoResult SDFCrypto::KeyGen(AlgorithmType algorithm){
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     Key key=Key();
     unsigned int code = provider.KeyGen(algorithm,&key);
-    SDFCryptoResult result;
-    if(code != SDR_OK){
-        result.sdfErrorMessage = provider.GetErrorMessage(code);
-    }else{
-        result.privateKey = toHex(key.PrivateKey(),key.PrivateKeyLen());
-        result.publicKey = toHex(key.PublicKey(),key.PublicKeyLen());
-    }
-    return result;
+    return makeResult(nullptr,toHex(key.PublicKey(),key.PublicKeyLen()),toHex(key.PrivateKey(),key.PrivateKeyLen()),false,nullptr,code);
 }
 SDFCryptoResult SDFCrypto::Sign(Key const& key, AlgorithmType algorithm, char const* digest, int digestLen){
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));
     unsigned int len;
     unsigned int code = provider.Sign(key,algorithm,digest,(unsigned int)digestLen,signature,&len);
-    SDFCryptoResult result;
-    if(code != SDR_OK){
-        result.sdfErrorMessage = provider.GetErrorMessage(code);
-    }else{
-        result.signature = toHex(signature,len);
-    }
-    return result;
+    return makeResult(toHex(signature,len),nullptr,nullptr,false,nullptr,code);
 }
 SDFCryptoResult SDFCrypto::Verify(Key const& key, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen){
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     bool isValid;
     unsigned int code = provider.Verify(key,algorithm,digest,(unsigned int)digestLen,signature,(unsigned int)signatureLen,&isValid);
     SDFCryptoResult result;
-    if(code != SDR_OK){
-        result.sdfErrorMessage = provider.GetErrorMessage(code);
-    }else{
-        result.result = isValid;
-    }
-    return result;
+    return makeResult(nullptr,nullptr,nullptr,isValid,nullptr,code);
 }
 
 SDFCryptoResult SDFCrypto::Hash(Key *key, AlgorithmType algorithm, char const* message,int messageLen){
@@ -362,15 +344,7 @@ SDFCryptoResult SDFCrypto::Hash(Key *key, AlgorithmType algorithm, char const* m
     unsigned int len;
     unsigned int code = provider.Hash(key,algorithm,message,messageLen,hashResult,&len);
     PrintData("Hash result: ",hashResult,32,16);
-    SDFCryptoResult result;
-    if(code != SDR_OK){
-        result.sdfErrorMessage = provider.GetErrorMessage(code);
-    }else{
-        result.sdfErrorMessage = nullptr;
-        result.hash = toHex(hashResult,32);
-        cout << "result.hash :" << result.hash << endl;
-    }
-    return result;
+    return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code);
 }
 
 SDFCryptoResult SDFCrypto::HashWithZ(Key *key, AlgorithmType algorithm, char const* message,int messageLen){
@@ -379,15 +353,23 @@ SDFCryptoResult SDFCrypto::HashWithZ(Key *key, AlgorithmType algorithm, char con
     unsigned char hashResult[32];
     unsigned int len;
     unsigned int code = provider.Hash(key,algorithm,message,messageLen,hashResult,&len);
-    SDFCryptoResult result;
-    if(code != SDR_OK){
-        result.sdfErrorMessage = provider.GetErrorMessage(code);
-    }else{
-        result.hash = toHex(hashResult,32);
-    }
-    return result;
+    return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code);
 }
 
+SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,bool result,char * hash,unsigned int code){
+    SDFCryptoResult cryptoResult;
+    cryptoResult.signature = signature;
+    cryptoResult.publicKey = publicKey;
+    cryptoResult.privateKey = privateKey;
+    cryptoResult.result = result;
+    cryptoResult.hash = hash;
+    if(code != SDR_OK){
+        cryptoResult.sdfErrorMessage = SDFCryptoProvider::GetErrorMessage(code);
+    }else{
+        cryptoResult.sdfErrorMessage = nullptr;
+    }
+    return cryptoResult;
+}
 char* toHex(unsigned char *data, int len)
 {
     

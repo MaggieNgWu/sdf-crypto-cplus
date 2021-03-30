@@ -176,6 +176,7 @@ struct SDFCryptoResult{
     char * hash;
     char * sdfErrorMessage;
 };
+
 class SDFCrypto{
 public:
     SDFCryptoResult KeyGen(AlgorithmType algorithm);
@@ -239,6 +240,7 @@ public:
 //         return c_hex;
 //     }
 // };
+SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,bool result,char * hash,char * sdfErrorMessage);
 char * toHex(unsigned char *data, int len);
 int PrintData(char*,unsigned char*,unsigned int, unsigned int);
 }  // namespace crypto
