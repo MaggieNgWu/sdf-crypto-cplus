@@ -76,8 +76,8 @@ int main(int, const char* argv[]){
     code = provider.KeyGen(SM2,&key);
     cout << "****KeyGen****" << endl;
     cout << provider.GetErrorMessage(code) << endl;
-    PrintData((char *)"public key",key.PublicKey(),64,16);
-    PrintData((char *)"private Key",key.PrivateKey(),32,16);
+    PrintData((char *)"public key",(char *)key.PublicKey(),64,16);
+    PrintData((char *)"private Key",(char *)key.PrivateKey(),32,16);
 
     cout << "****Sign****" << endl;
     unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));

@@ -137,8 +137,8 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
         std::basic_string<unsigned char> pk_x = pk.x;
         std::basic_string<unsigned char> pk_y = pk.y;
         std::basic_string<unsigned char> pk_xy = pk_x + pk_y;
-        key->setPrivateKey((char*)sk.D, sk.bits / 8);
-        key->setPublicKey((char*)pk_xy.c_str(), pk.bits / 4);
+        key->setPrivateKey(sk.D, sk.bits / 8);
+        key->setPublicKey((unsigned char *)pk_xy.c_str(), pk.bits / 4);
         m_sessionPool->ReturnSession(sessionHandle);
         return SDR_OK;
     }
