@@ -41,10 +41,10 @@ enum AlgorithmType : uint32_t
 class Key
 {
 public:
-    char* PublicKey() const { return m_publicKey; }
-    char* PrivateKey() const { return m_privateKey; }
+    unsigned char * PublicKey() const { return m_publicKey; }
+    unsigned char * PrivateKey() const { return m_privateKey; }
     Key(void){};
-    Key(char* privateKey, char* publicKey)
+    Key(unsigned char* privateKey, unsigned char* publicKey)
     {
         m_privateKey = privateKey;
         m_publicKey = publicKey;
@@ -56,14 +56,14 @@ public:
     };
     unsigned int Identifier() { return m_keyIndex; };
     char * Password() { return m_keyPassword; };
-    void setPrivateKey(char* privateKey, unsigned int len)
+    void setPrivateKey(unsigned char* privateKey, unsigned int len)
     {
-        m_privateKey = (char*)malloc(len * sizeof(char));
-        memcpy(m_privateKey, privateKey, 32);
+        m_privateKey = (unsigned char*)malloc(len * sizeof(char));
+        memcpy(m_privateKey, privateKey, len);
     };
-    void setPublicKey(char* publicKey, unsigned int len)
+    void setPublicKey(unsigned char* publicKey, unsigned int len)
     {
-        m_publicKey = (char*)malloc(len * sizeof(char));
+        m_publicKey = (unsigned char*)malloc(len * sizeof(char));
         memcpy(m_publicKey, publicKey, len);
     };
     ~Key(){
@@ -74,8 +74,8 @@ public:
 private:
     unsigned int m_keyIndex;
     char * m_keyPassword;
-    char* m_privateKey;
-    char* m_publicKey;
+    unsigned char * m_privateKey;
+    unsigned char * m_publicKey;
 };
 
 class SessionPool
