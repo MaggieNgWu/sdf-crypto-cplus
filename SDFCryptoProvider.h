@@ -163,22 +163,22 @@ public:
 
 class TypeHelper{
 public:
-    static unsigned int & NewUintPointer(){
-        unsigned int i;
+    unsigned int i;
+    bool b;
+    unsigned int * NewUintPointer(){
+        return &i;
+    }
+
+    unsigned int GetUintValue(){
         return i;
     }
 
-    static unsigned int GetUintValue(unsigned int * data){
-        return *data;
+    bool * NewBoolPointer(){
+        return &b;
     }
 
-    static bool & NewBoolPointer(){
-        bool i;
-        return i;
-    }
-
-    static bool GetBoolValue(bool * data){
-        return *data;
+    bool GetBoolValue(){
+        return b;
     }
 };
 
