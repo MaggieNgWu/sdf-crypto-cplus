@@ -361,11 +361,13 @@ SDFCryptoResult SDFCrypto::Hash(Key *key, AlgorithmType algorithm, char const* m
     unsigned char hashResult[32];
     unsigned int len;
     unsigned int code = provider.Hash(key,algorithm,message,messageLen,hashResult,&len);
+    PrintData("Hash result: ",hashResult,32,16);
     SDFCryptoResult result;
     if(code != SDR_OK){
         result.sdfErrorMessage = provider.GetErrorMessage(code);
     }else{
         result.hash = toHex(hashResult,32);
+        cout << "result.hash :" << result.hash << endl;
     }
     return result;
 }

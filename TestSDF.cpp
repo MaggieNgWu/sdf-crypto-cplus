@@ -67,10 +67,9 @@ int main(int, const char* argv[]){
     unsigned char bHashResult[32];
     SDFCryptoResult result = crypto->Hash(nullptr,SM3,(char *)bHashData,64);
     if (result.sdfErrorMessage != nullptr){
-        cout << result.sdfErrorMessage << endl;
+        cout << "Get error : " << result.sdfErrorMessage <<endl;
     }else{
-        
-        cout << result.hash << endl;
+        cout << "Get Hash : " << result.hash << endl;
         cout << toHex(bHashStdResult,32) <<endl;
     }
     return 0;
