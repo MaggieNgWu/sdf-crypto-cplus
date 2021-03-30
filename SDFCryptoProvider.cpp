@@ -134,6 +134,9 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
             m_sessionPool->ReturnSession(sessionHandle);
             return result;
         }
+        PrintData("public key x ",pk.x,32,16);
+        PrintData("public key y ",pk.y,32,16);
+        PrintData("private key y ",sk.D,32,16);
         std::basic_string<unsigned char> pk_x = pk.x;
         std::basic_string<unsigned char> pk_y = pk.y;
         std::basic_string<unsigned char> pk_xy = pk_x + pk_y;
@@ -315,6 +318,43 @@ char * SDFCryptoProvider::GetErrorMessage(unsigned int code)
 	strcpy(c_err,err.c_str());
 	return c_err;
     }
+}
+
+int PrintData(char *itemName, unsigned char *sourceData, unsigned int dataLength, unsigned int rowCount)
+{
+	int i, j;
+	
+	if((sourceData == NULL) || (rowCount == 0) || (dataLength == 0))
+		return -1;
+	
+	if(itemName != NULL)
+		printf("%s[%d]:\n", itemName, dataLength);
+	
+	for(i=0; i<(int)(dataLength/rowCount); i++)
+	{
+		printf("%08x  ",i * rowCount);
+
+		for(j=0; j<(int)rowCount; j++)
+		{
+			printf("%02x ", *(sourceData + i*rowCount + j));
+		}
+
+		printf("\n");
+	}
+
+	if (!(dataLength % rowCount))
+		return 0;
+	
+	printf("%08x  ", (dataLength/rowCount) * rowCount);
+
+	for(j=0; j<(int)(dataLength%rowCount); j++)
+	{
+		printf("%02x ",*(sourceData + (dataLength/rowCount)*rowCount + j));
+	}
+
+	printf("\n");
+
+	return 0;
 }
 
 }  // namespace crypto
