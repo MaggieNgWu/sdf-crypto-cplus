@@ -58,19 +58,18 @@ int main(int, const char* argv[]){
 
     unsigned char bHashStdResult[32] = {0xde,0xbe,0x9f,0xf9,0x22,0x75,0xb8,0xa1,0x38,0x60,0x48,0x89,0xc1,0x8e,0x5a,0x4d,
                                     0x6f,0xdb,0x70,0xe5,0x38,0x7e,0x57,0x65,0x29,0x3d,0xcb,0xa3,0x9c,0x0c,0x57,0x32};
-    unsigned char bHashResult[256];
+    unsigned char bHashResult[32];
     unsigned int uiHashResultLen;
     unsigned int code = provider.Hash(nullptr,SM3,(char *)bHashData,64, (char *) bHashResult, &uiHashResultLen);
     cout << "****Make Hash****" << endl;
     cout<<"Call Hash:" << provider.GetErrorMessage(code) << endl;
-    PrintData((char *)"Hash",(char *)bHashResult,32,16);
+    PrintData((char *)"Cal Hash",(char *)bHashResult,32,16);
+    PrintData((char *)"Std Hash",(char *)bHashStdResult,32,16);
     if((uiHashResultLen != 32) || (memcmp(bHashStdResult, bHashResult, 32) != 0))
     {
-        cout << "杂凑值与标准数据杂凑值比较失败." << endl;
-    }
-    else
-    {
-        cout << "标准数据杂凑运算验证成功。" << endl;
+	cout << "result is not match"<<endl;
+    }else{
+    	cout << "result is match" <<endl;
     }
 
     Key key=Key();
@@ -78,19 +77,20 @@ int main(int, const char* argv[]){
     cout << "****KeyGen****" << endl;
     cout << provider.GetErrorMessage(code) << endl;
     PrintData((char *)"public key",key.PublicKey(),64,16);
+    PrintData((char *)"private Key",key.PrivateKey(),32,16);
 
     cout << "****Sign****" << endl;
     char * signature = (char *)malloc(64*sizeof(char));
     unsigned int len;
     provider.Sign(key,SM2,(char *)bHashResult,32,signature,&len);
     cout << provider.GetErrorMessage(code) << endl;
-    PrintData((char *)"signature",signature,64,16);
+    PrintData((char *)"signature",signature,len,16);
 
     cout << "****Verify****" << endl;
     bool result;
     code = provider.Verify(key,SM2,(char *)bHashResult,32,signature,64,&result);
     cout << provider.GetErrorMessage(code) << endl;
-    cout <<"verify result"<< result<<endl;
+    cout <<"verify result: "<< result <<endl;
 
     return 0;
 }
