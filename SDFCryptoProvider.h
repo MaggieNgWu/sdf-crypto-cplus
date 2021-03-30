@@ -37,7 +37,7 @@ enum AlgorithmType : uint32_t
     SM3 = 0x00000001,      // SGD_SM3
     SM4_CBC = 0x00002002,  // SGD_SM4_CBC
 };
-
+int PrintData(char*,unsigned char*,unsigned int, unsigned int);
 class Key
 {
 public:

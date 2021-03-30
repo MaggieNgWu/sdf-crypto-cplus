@@ -8,7 +8,6 @@
 #include <string>
 
 using namespace std;
-
 namespace dev
 {
 namespace crypto
@@ -134,9 +133,9 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
             m_sessionPool->ReturnSession(sessionHandle);
             return result;
         }
-        PrintData("public key x ",pk.x,32,16);
-        PrintData("public key y ",pk.y,32,16);
-        PrintData("private key y ",sk.D,32,16);
+	dev::crypto::PrintData("public key x ",pk.x,32,16);
+	dev::crypto::PrintData("public key y ",pk.y,32,16);
+	dev::crypto::PrintData("private key y ",sk.D,32,16);
         std::basic_string<unsigned char> pk_x = pk.x;
         std::basic_string<unsigned char> pk_y = pk.y;
         std::basic_string<unsigned char> pk_xy = pk_x + pk_y;
