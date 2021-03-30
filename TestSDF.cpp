@@ -6,44 +6,6 @@ using namespace std;
 using namespace dev;
 using namespace crypto;
 
-int PrintData(char *itemName, char *sourceData, unsigned int dataLength, unsigned int rowCount)
-{
-	int i, j;
-	
-	if((sourceData == NULL) || (rowCount == 0) || (dataLength == 0))
-		return -1;
-	
-	if(itemName != NULL)
-		printf("%s[%d]:\n", itemName, dataLength);
-	
-	for(i=0; i<(int)(dataLength/rowCount); i++)
-	{
-		printf("%08x  ",i * rowCount);
-
-		for(j=0; j<(int)rowCount; j++)
-		{
-			printf("%02x ", *(sourceData + i*rowCount + j));
-		}
-
-		printf("\n");
-	}
-
-	if (!(dataLength % rowCount))
-		return 0;
-	
-	printf("%08x  ", (dataLength/rowCount) * rowCount);
-
-	for(j=0; j<(int)(dataLength%rowCount); j++)
-	{
-		printf("%02x ",*(sourceData + (dataLength/rowCount)*rowCount + j));
-	}
-
-	printf("\n");
-
-	return 0;
-}
-
-
 int main(int, const char* argv[]){
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     char * input = (char *)malloc(8*sizeof(char));
@@ -63,8 +25,8 @@ int main(int, const char* argv[]){
     unsigned int code = provider.Hash(nullptr,SM3,(char *)bHashData,64, bHashResult, &uiHashResultLen);
     cout << "****Make Hash****" << endl;
     cout<<"Call Hash:" << provider.GetErrorMessage(code) << endl;
-    PrintData((char *)"Cal Hash",(char *)bHashResult,32,16);
-    PrintData((char *)"Std Hash",(char *)bHashStdResult,32,16);
+    PrintData((char *)"Cal Hash",bHashResult,32,16);
+    PrintData((char *)"Std Hash",bHashStdResult,32,16);
     if((uiHashResultLen != 32) || (memcmp(bHashStdResult, bHashResult, 32) != 0))
     {
 	cout << "result is not match"<<endl;
@@ -76,15 +38,15 @@ int main(int, const char* argv[]){
     code = provider.KeyGen(SM2,&key);
     cout << "****KeyGen****" << endl;
     cout << provider.GetErrorMessage(code) << endl;
-    PrintData((char *)"public key",(char *)key.PublicKey(),64,16);
-    PrintData((char *)"private Key",(char *)key.PrivateKey(),32,16);
+    PrintData((char *)"public key",key.PublicKey(),64,16);
+    PrintData((char *)"private Key",key.PrivateKey(),32,16);
 
     cout << "****Sign****" << endl;
     unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));
     unsigned int len;
     provider.Sign(key,SM2,(char *)bHashResult,32,signature,&len);
     cout << provider.GetErrorMessage(code) << endl;
-    PrintData((char *)"signature",(char *)signature,len,16);
+    PrintData((char *)"signature",signature,len,16);
 
     cout << "****Verify****" << endl;
     bool result;
