@@ -366,6 +366,7 @@ SDFCryptoResult SDFCrypto::Hash(Key *key, AlgorithmType algorithm, char const* m
     if(code != SDR_OK){
         result.sdfErrorMessage = provider.GetErrorMessage(code);
     }else{
+        result.sdfErrorMessage = nullptr;
         result.hash = toHex(hashResult,32);
         cout << "result.hash :" << result.hash << endl;
     }
