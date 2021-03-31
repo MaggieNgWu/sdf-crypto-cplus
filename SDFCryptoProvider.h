@@ -25,6 +25,7 @@
 #include <list>
 #include <string>
 #include <cstring>
+#include <vector>
 using namespace std;
 namespace dev
 {
