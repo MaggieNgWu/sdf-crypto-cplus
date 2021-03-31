@@ -331,11 +331,17 @@ SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char
     try{
         Key key = Key();
         key.setPrivateKey(&fromHex(privateKey)[0],32);
+        PrintData((char*)"private key: ",&fromHex(privateKey)[0],32,16);
+        PrintData((char*)"hash      : ",&fromHex((char *)digest)[0],32,16);
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));
         unsigned int len;
         unsigned int code = provider.Sign(key,algorithm,&fromHex((char *)digest)[0],(unsigned int)digestLen,signature,&len);
-        return makeResult(toHex(signature,len),nullptr,nullptr,false,nullptr,code,nullptr);
+        if (code != SDR_OK){
+            return makeResult(nullptr,nullptr,nullptr,false,nullptr,code,nullptr);
+        }else{
+            return makeResult(toHex(signature,len),nullptr,nullptr,false,nullptr,code,nullptr);
+        } 
     }catch(const char* e){
         return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }    
