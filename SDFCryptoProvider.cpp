@@ -324,7 +324,7 @@ SDFCryptoResult SDFCrypto::KeyGen(AlgorithmType algorithm){
         unsigned int code = provider.KeyGen(algorithm,&key);
         return makeResult(nullptr,toHex(key.PublicKey(),key.PublicKeyLen()),toHex(key.PrivateKey(),key.PrivateKeyLen()),false,nullptr,code);
     }catch(const char* e){
-        return makeResult(nullptr,nullptr,nullptr,nullptr,nullptr,SDR_OK,(char*)e);
+        return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }
 }
 SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char const* digest, int digestLen){
@@ -337,7 +337,7 @@ SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char
         unsigned int code = provider.Sign(key,algorithm,&fromHex((char *)digest)[0],(unsigned int)digestLen,signature,&len);
         return makeResult(toHex(signature,len),nullptr,nullptr,false,nullptr,code,nullptr);
     }catch(const char* e){
-        return makeResult(nullptr,nullptr,nullptr,nullptr,nullptr,SDR_OK,(char*)e);
+        return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }    
 }
 SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen){
@@ -352,7 +352,7 @@ SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, cha
         unsigned int code = provider.Verify(key,algorithm,&fromHex((char *)digest)[0],(unsigned int)digestLen,&fromHex((char *)signature)[0],(unsigned int)signatureLen,&isValid);
         return makeResult(nullptr,nullptr,nullptr,isValid,nullptr,code,nullptr);
     }catch(const char* e){
-        return makeResult(nullptr,nullptr,nullptr,nullptr,nullptr,SDR_OK,(char*)e);
+        return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }   
 }
 
@@ -366,7 +366,7 @@ SDFCryptoResult SDFCrypto::Hash(char * publicKey, AlgorithmType algorithm, char 
         unsigned int code = provider.Hash(nullptr,algorithm,&fromHex((char *)message)[0],messageLen,hashResult,&len);
         return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code,nullptr);
     }catch(const char* e){
-        return makeResult(nullptr,nullptr,nullptr,nullptr,nullptr,SDR_OK,(char*)e);
+        return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }   
     
 }
@@ -380,7 +380,7 @@ SDFCryptoResult SDFCrypto::HashWithZ(char * key, AlgorithmType algorithm, char c
         unsigned int code = provider.Hash(nullptr,algorithm,&fromHex((char *)message)[0],messageLen,hashResult,&len);
         return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code,nullptr);
     }catch(const char* e){
-        return makeResult(nullptr,nullptr,nullptr,nullptr,nullptr,SDR_OK,(char*)e);
+        return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }
 }
 
