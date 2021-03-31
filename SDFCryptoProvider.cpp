@@ -395,6 +395,8 @@ char* toHex(unsigned char *data, int len)
 
 unsigned char * fromHex(char * hexString){
     size_t len = strlen(hexString);
+    cout << "len: " << len << endl;
+    cout << "loc 0: " << hexString[0] << endl;
     unsigned s = (len>= 2 && hexString[0] == '0' && hexString[1] == 'x') ? 2 : 0;
     unsigned char c_str[(len-s)/2];
     if(len%2){
