@@ -187,10 +187,10 @@ public:
     SDFCryptoResult HashWithZ(char * key, AlgorithmType algorithm, char const* message,int messageLen);
 };
 
-SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,bool result,char * hash,unsigned int code);
+SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,bool result,char * hash,unsigned int code,char*);
 char * toHex(unsigned char *data, int len);
 std::vector<uint8_t> fromHex(char * hexString);
 int fromHexChar(char _i);
-int PrintData(char*,unsigned char*,unsigned int, unsigned int,char*);
+int PrintData(char*,unsigned char*,unsigned int, unsigned int);
 }  // namespace crypto
 }  // namespace dev
