@@ -89,8 +89,8 @@ int main(int, const char* argv[]){
         cout << "Get signature: " << signResult.signature << endl;
     }
 
-    SDFCryptoResult verifyResult = crypto->Verify(result.publicKey,SM2,toHex(bHashStdResult,32),32,signResult.signature,64);
     cout << "****Verify****" << endl;
+    SDFCryptoResult verifyResult = crypto->Verify(result.publicKey,SM2,toHex(bHashStdResult,32),32,signResult.signature,64);
     if (verifyResult.sdfErrorMessage != nullptr){
         cout << "Get error : " << verifyResult.sdfErrorMessage <<endl;
     }else{
