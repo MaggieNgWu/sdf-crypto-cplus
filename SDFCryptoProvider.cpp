@@ -414,6 +414,7 @@ unsigned char * fromHex(char * hexString){
             throw "bad hex string";
         }  
     }
+    PrintData("from hex",c_str,64,16);
     return c_str;
 }
 
