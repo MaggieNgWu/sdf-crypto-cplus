@@ -412,7 +412,6 @@ SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,b
 }
 char* toHex(unsigned char *data, int len)
 {
-    
     static char const* hexdigits = "0123456789abcdef";
     std::string hex(len * 2, '0');
     int position = 0;
@@ -432,7 +431,11 @@ std::vector<uint8_t> fromHex(char * hexString){
     std::vector<uint8_t> ret;
     ret.reserve((len - s + 1) / 2);
     if(len%2){
-        throw "bad hex string";
+        int h = fromHexChar(hexString[s++]);
+        if (h != -1)
+            ret.push_back(h);
+        else
+            throw "bad hex string";
     }
     for (unsigned i = s; i < len; i += 2)
     {
