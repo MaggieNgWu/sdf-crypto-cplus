@@ -72,10 +72,6 @@ public:
         memcpy(m_publicKey, publicKey, len);
         m_publicKeyLen = len;
     };
-    ~Key(){
-        free(m_privateKey);
-        free(m_publicKey);
-    }
 
 private:
     unsigned int m_keyIndex;
