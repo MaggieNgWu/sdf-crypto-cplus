@@ -353,7 +353,7 @@ SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char
 SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen){
     try{
         Key key = Key();
-        key.setPublicKey(&fromHex(publicKey)[0],64);
+        key.setPublicKey(fromHex(publicKey).data(),64);
         // PrintData((char*)"public key: ",&fromHex(publicKey)[0],64,16);
         // PrintData((char*)"signature : ",&fromHex((char *)signature)[0],64,16);
         // PrintData((char*)"hash      : ",&fromHex((char *)digest)[0],32,16);
