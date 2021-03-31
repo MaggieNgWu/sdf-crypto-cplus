@@ -335,8 +335,8 @@ SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char
     try{
         Key key = Key();
         key.setPrivateKey(fromHex(privateKey).data(),32);
-        // PrintData((char*)"private key: ",&fromHex(privateKey)[0],32,16);
-        // PrintData((char*)"hash      : ",&fromHex((char *)digest)[0],32,16);
+        SearchData(&fromHex(privateKey)[0],32,16);
+        SearchData(&fromHex((char *)digest)[0],32,16);
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));
         unsigned int len;
@@ -496,6 +496,27 @@ int PrintData(char *itemName, unsigned char *sourceData, unsigned int dataLength
 
 	printf("\n");
 
+	return 0;
+}
+
+int SearchData(unsigned char *sourceData, unsigned int dataLength, unsigned int rowCount)
+{
+	int i, j;
+	
+	if((sourceData == NULL) || (rowCount == 0) || (dataLength == 0))
+		return -1;
+	
+	
+	for(i=0; i<(int)(dataLength/rowCount); i++)
+	{
+		i * rowCount;
+
+		for(j=0; j<(int)rowCount; j++)
+		{
+			*(sourceData + i*rowCount + j);
+		}
+
+	}
 	return 0;
 }
 

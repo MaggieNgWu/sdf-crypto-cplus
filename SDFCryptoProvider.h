@@ -192,5 +192,6 @@ char * toHex(unsigned char *data, int len);
 std::vector<uint8_t> fromHex(char * hexString);
 int fromHexChar(char _i);
 int PrintData(char*,unsigned char*,unsigned int, unsigned int);
+int SearchData(unsigned char *, unsigned int , unsigned int);
 }  // namespace crypto
 }  // namespace dev
