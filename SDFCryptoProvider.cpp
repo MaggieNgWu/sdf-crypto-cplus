@@ -342,11 +342,13 @@ SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, cha
 }
 
 SDFCryptoResult SDFCrypto::Hash(char * publicKey, AlgorithmType algorithm, char const* message,int messageLen){
+    cout << "start hash"<<endl;
+    PrintData("data",fromHex((char *)message),64,16);
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     bool isValid;
     unsigned char hashResult[32];
     unsigned int len;
-    PrintData("data",fromHex((char *)message),64,16);
+    
     unsigned int code = provider.Hash(nullptr,algorithm,fromHex((char *)message),messageLen,hashResult,&len);
     PrintData("Hash result: ",hashResult,32,16);
     return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code);
