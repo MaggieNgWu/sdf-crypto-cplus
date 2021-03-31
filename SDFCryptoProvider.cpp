@@ -322,7 +322,7 @@ SDFCryptoResult SDFCrypto::KeyGen(AlgorithmType algorithm){
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         Key key=Key();
         unsigned int code = provider.KeyGen(algorithm,&key);
-        return makeResult(nullptr,toHex(key.PublicKey(),key.PublicKeyLen()),toHex(key.PrivateKey(),key.PrivateKeyLen()),false,nullptr,code);
+        return makeResult(nullptr,toHex(key.PublicKey(),key.PublicKeyLen()),toHex(key.PrivateKey(),key.PrivateKeyLen()),false,nullptr,code,nullptr);
     }catch(const char* e){
         return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }
@@ -344,9 +344,9 @@ SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, cha
     try{
         Key key = Key();
         key.setPublicKey(&fromHex(publicKey)[0],64);
-        PrintData("public key: ",&fromHex(publicKey)[0],64,16);
-        PrintData("signature : ",&fromHex((char *)signature)[0],64,16);
-        PrintData("hash      : ",&fromHex((char *)digest)[0],32,16);
+        PrintData((char*)"public key: ",&fromHex(publicKey)[0],64,16);
+        PrintData((char*)"signature : ",&fromHex((char *)signature)[0],64,16);
+        PrintData((char*)"hash      : ",&fromHex((char *)digest)[0],32,16);
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         bool isValid;
         unsigned int code = provider.Verify(key,algorithm,&fromHex((char *)digest)[0],(unsigned int)digestLen,&fromHex((char *)signature)[0],(unsigned int)signatureLen,&isValid);
