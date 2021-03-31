@@ -72,6 +72,32 @@ int main(int, const char* argv[]){
         cout << "Get Hash : " << result.hash << endl;
         cout << toHex(bHashStdResult,32) <<endl;
     }
+    
+    result = crypto->KeyGen(SM2);
+    cout << "****KeyGen****" << endl;
+    if (result.sdfErrorMessage != nullptr){
+        cout << "Get error : " << result.sdfErrorMessage <<endl;
+    }else{
+        cout << "Get public key : " << result.publicKey << endl;
+        cout << "Get private key : " << result.privateKey << endl;
+    }
+
+    SDFCryptoResult signResult = crypto->Sign(result.privateKey,SM2,toHex(bHashResult,32),32);
+    cout << "****Sign****" << endl;
+    if (signResult.sdfErrorMessage != nullptr){
+        cout << "Get error : " << signResult.sdfErrorMessage <<endl;
+    }else{
+        cout << "Get signature: " << signResult.signature << endl;
+    }
+
+    SDFCryptoResult verifyResult = crypto->Verify(result.publicKey,SM2,toHex(bHashResult,32),32,signResult.signature,64);
+    cout << "****Sign****" << endl;
+    if (signResult.sdfErrorMessage != nullptr){
+        cout << "Get error : " << signResult.sdfErrorMessage <<endl;
+    }else{
+        cout << "Get signature: " << signResult.signature << endl;
+    }
+
     return 0;
 }
 

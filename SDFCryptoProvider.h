@@ -180,10 +180,10 @@ struct SDFCryptoResult{
 class SDFCrypto{
 public:
     SDFCryptoResult KeyGen(AlgorithmType algorithm);
-    SDFCryptoResult Sign(Key const& key, AlgorithmType algorithm, char const* digest, int digestLen);
-    SDFCryptoResult Verify(Key const& key, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen);
-    SDFCryptoResult Hash(Key *key, AlgorithmType algorithm, char const* message,int messageLen);
-    SDFCryptoResult HashWithZ(Key *key, AlgorithmType algorithm, char const* message,int messageLen);
+    SDFCryptoResult Sign(char * privateKey, AlgorithmType algorithm, char const* digest, int digestLen);
+    SDFCryptoResult Verify(char * publicKey, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen);
+    SDFCryptoResult Hash(char * key, AlgorithmType algorithm, char const* message,int messageLen);
+    SDFCryptoResult HashWithZ(char * key, AlgorithmType algorithm, char const* message,int messageLen);
 };
 
 
