@@ -70,7 +70,7 @@ int main(int, const char* argv[]){
         cout << "Get error : " << result.sdfErrorMessage <<endl;
     }else{
         cout << "Get Hash : " << result.hash << endl;
-        cout << toHex(bHashStdResult,32) <<endl;
+        cout << "Standard : " << toHex(bHashStdResult,32) <<endl;
     }
     
     result = crypto->KeyGen(SM2);
