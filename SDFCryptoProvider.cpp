@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <string>
+#include <vector>
 
 using namespace std;
 namespace dev
@@ -324,33 +325,33 @@ SDFCryptoResult SDFCrypto::KeyGen(AlgorithmType algorithm){
 }
 SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char const* digest, int digestLen){
     Key key = Key();
-    key.setPrivateKey(fromHex(privateKey),32);
+    key.setPrivateKey(&fromHex(privateKey)[0],32);
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));
     unsigned int len;
-    unsigned int code = provider.Sign(key,algorithm,fromHex((char *)digest),(unsigned int)digestLen,signature,&len);
+    unsigned int code = provider.Sign(key,algorithm,&fromHex((char *)digest)[0],(unsigned int)digestLen,signature,&len);
     return makeResult(toHex(signature,len),nullptr,nullptr,false,nullptr,code);
 }
 SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen){
     Key key = Key();
-    key.setPrivateKey(fromHex(publicKey),64);
+    key.setPrivateKey(&fromHex(publicKey)[0],64);
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     bool isValid;
-    unsigned int code = provider.Verify(key,algorithm,fromHex((char *)digest),(unsigned int)digestLen,fromHex((char *)signature),(unsigned int)signatureLen,&isValid);
+    unsigned int code = provider.Verify(key,algorithm,&fromHex((char *)digest)[0],(unsigned int)digestLen,&fromHex((char *)signature)[0],(unsigned int)signatureLen,&isValid);
     SDFCryptoResult result;
     return makeResult(nullptr,nullptr,nullptr,isValid,nullptr,code);
 }
 
 SDFCryptoResult SDFCrypto::Hash(char * publicKey, AlgorithmType algorithm, char const* message,int messageLen){
     cout << "start hash"<<endl;
-    unsigned char * h = fromHex((char *)message);
+    unsigned char * h = &fromHex((char *)message)[0];
     cout << "h0 :"<<h[0] <<endl;
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     bool isValid;
     unsigned char hashResult[32];
     unsigned int len;
     
-    unsigned int code = provider.Hash(nullptr,algorithm,fromHex((char *)message),messageLen,hashResult,&len);
+    unsigned int code = provider.Hash(nullptr,algorithm,&fromHex((char *)message)[0],messageLen,hashResult,&len);
     PrintData("Hash result: ",hashResult,32,16);
     return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code);
 }
@@ -360,7 +361,7 @@ SDFCryptoResult SDFCrypto::HashWithZ(char * key, AlgorithmType algorithm, char c
     bool isValid;
     unsigned char hashResult[32];
     unsigned int len;
-    unsigned int code = provider.Hash(nullptr,algorithm,fromHex((char *)message),messageLen,hashResult,&len);
+    unsigned int code = provider.Hash(nullptr,algorithm,&fromHex((char *)message)[0],messageLen,hashResult,&len);
     return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code);
 }
 
@@ -394,29 +395,29 @@ char* toHex(unsigned char *data, int len)
     return c_hex;
 }
 
-unsigned char * fromHex(char * hexString){
+std::vector<uint8_t> fromHex(char * hexString){
     size_t len = strlen(hexString);
     cout << "len: " << len << endl;
     cout << "loc 0: " << hexString[0] << endl;
     unsigned s = (len>= 2 && hexString[0] == '0' && hexString[1] == 'x') ? 2 : 0;
-    unsigned char c_str[(len-s)/2];
+    std::vector<uint8_t> ret;
+    ret.reserve((len - s + 1) / 2);
+    //unsigned char c_str[(len-s)/2];
     if(len%2){
         throw "bad hex string";
     }
-    int position =0;
     for (unsigned i = s; i < len; i += 2)
     {
         int h = fromHexChar(hexString[i]);
         int l = fromHexChar(hexString[i + 1]);
 
         if (h != -1 && l != -1){
-            c_str[position++] = h * 16 + l;
+            ret.push_back((uint8_t)(h * 16 + l));
         }else{
             throw "bad hex string";
         }  
     }
-    PrintData("from hex",c_str,64,16);
-    return c_str;
+    return ret;
 }
 
 int fromHexChar(char _i)
