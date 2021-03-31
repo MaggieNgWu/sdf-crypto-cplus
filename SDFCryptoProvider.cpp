@@ -338,7 +338,6 @@ SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, cha
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     bool isValid;
     unsigned int code = provider.Verify(key,algorithm,&fromHex((char *)digest)[0],(unsigned int)digestLen,&fromHex((char *)signature)[0],(unsigned int)signatureLen,&isValid);
-    SDFCryptoResult result;
     return makeResult(nullptr,nullptr,nullptr,isValid,nullptr,code);
 }
 
