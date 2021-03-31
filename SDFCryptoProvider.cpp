@@ -335,8 +335,8 @@ SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char
     try{
         Key key = Key();
         key.setPrivateKey(fromHex(privateKey).data(),32);
-        SearchData(&fromHex(privateKey)[0],32,16);
-        SearchData(&fromHex((char *)digest)[0],32,16);
+        SearchData(fromHex(privateKey).data(),32,16);
+        SearchData(fromHex(digest).data(),32,16);
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));
         unsigned int len;
@@ -354,9 +354,9 @@ SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, cha
     try{
         Key key = Key();
         key.setPublicKey(fromHex(publicKey).data(),64);
-        // PrintData((char*)"public key: ",&fromHex(publicKey)[0],64,16);
-        // PrintData((char*)"signature : ",&fromHex((char *)signature)[0],64,16);
-        // PrintData((char*)"hash      : ",&fromHex((char *)digest)[0],32,16);
+        SearchData(fromHex(publicKey).data(),64,16);
+        SearchData(fromHex((char *)signature).data(),64,16);
+        SearchData(fromHex((char *)digest).data(),32,16);
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         bool isValid;
         unsigned int code = provider.Verify(key,algorithm,fromHex((char *)digest).data(),(unsigned int)digestLen,fromHex((char *)signature).data(),(unsigned int)signatureLen,&isValid);
@@ -505,17 +505,13 @@ int SearchData(unsigned char *sourceData, unsigned int dataLength, unsigned int 
 	
 	if((sourceData == NULL) || (rowCount == 0) || (dataLength == 0))
 		return -1;
-	
-	
 	for(i=0; i<(int)(dataLength/rowCount); i++)
 	{
 		i * rowCount;
-
 		for(j=0; j<(int)rowCount; j++)
 		{
 			*(sourceData + i*rowCount + j);
 		}
-
 	}
 	return 0;
 }
