@@ -343,7 +343,8 @@ SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, cha
 
 SDFCryptoResult SDFCrypto::Hash(char * publicKey, AlgorithmType algorithm, char const* message,int messageLen){
     cout << "start hash"<<endl;
-    PrintData("data",fromHex((char *)message),64,16);
+    unsigned char * h = fromHex((char *)message);
+    cout << "h0 :"<<h[0] <<endl;
     SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
     bool isValid;
     unsigned char hashResult[32];
