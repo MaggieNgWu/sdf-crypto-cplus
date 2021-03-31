@@ -91,11 +91,11 @@ int main(int, const char* argv[]){
     }
 
     SDFCryptoResult verifyResult = crypto->Verify(result.publicKey,SM2,toHex(bHashResult,32),32,signResult.signature,64);
-    cout << "****Sign****" << endl;
+    cout << "****Verify****" << endl;
     if (signResult.sdfErrorMessage != nullptr){
         cout << "Get error : " << signResult.sdfErrorMessage <<endl;
     }else{
-        cout << "Get signature: " << signResult.signature << endl;
+        cout << "Get verify result: " << signResult.result << endl;
     }
 
     return 0;
