@@ -191,6 +191,6 @@ SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,b
 char * toHex(unsigned char *data, int len);
 std::vector<uint8_t> fromHex(char * hexString);
 int fromHexChar(char _i);
-int PrintData(char*,unsigned char*,unsigned int, unsigned int);
+int PrintData(char*,unsigned char*,unsigned int, unsigned int,char*);
 }  // namespace crypto
 }  // namespace dev
