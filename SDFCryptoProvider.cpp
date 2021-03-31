@@ -336,7 +336,7 @@ SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char
         Key key = Key();
         key.setPrivateKey(fromHex(privateKey).data(),32);
         SearchData(fromHex(privateKey).data(),32,16);
-        SearchData(fromHex(digest).data(),32,16);
+        SearchData(fromHex((char *)digest).data(),32,16);
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));
         unsigned int len;
