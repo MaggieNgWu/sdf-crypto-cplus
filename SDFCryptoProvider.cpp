@@ -331,7 +331,7 @@ SDFCryptoResult SDFCrypto::KeyGen(AlgorithmType algorithm){
         return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }
 }
-SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char const* digest, int digestLen){
+SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char const* digest){
     try{
         Key key = Key();
         key.setPrivateKey(fromHex(privateKey).data(),32);
@@ -340,7 +340,7 @@ SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         unsigned char * signature = (unsigned char *)malloc(64*sizeof(char));
         unsigned int len;
-        unsigned int code = provider.Sign(key,algorithm,fromHex((char *)digest).data(),(unsigned int)digestLen,signature,&len);
+        unsigned int code = provider.Sign(key,algorithm,fromHex((char *)digest).data(),getHexByteLen((char *)digest),signature,&len);
         if (code != SDR_OK){
             return makeResult(nullptr,nullptr,nullptr,false,nullptr,code,nullptr);
         }else{
@@ -350,7 +350,7 @@ SDFCryptoResult SDFCrypto::Sign(char * privateKey, AlgorithmType algorithm, char
         return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }    
 }
-SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen){
+SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, char const* digest, char const* signature){
     try{
         Key key = Key();
         key.setPublicKey(fromHex(publicKey).data(),64);
@@ -359,20 +359,20 @@ SDFCryptoResult SDFCrypto::Verify(char * publicKey, AlgorithmType algorithm, cha
         SearchData(fromHex((char *)digest).data(),32,16);
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         bool isValid;
-        unsigned int code = provider.Verify(key,algorithm,fromHex((char *)digest).data(),(unsigned int)digestLen,fromHex((char *)signature).data(),(unsigned int)signatureLen,&isValid);
+        unsigned int code = provider.Verify(key,algorithm,fromHex((char *)digest).data(),getHexByteLen((char *)digest),fromHex((char *)signature).data(),getHexByteLen((char*)signature),&isValid);
         return makeResult(nullptr,nullptr,nullptr,isValid,nullptr,code,nullptr);
     }catch(const char* e){
         return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
     }   
 }
 
-SDFCryptoResult SDFCrypto::Hash(char * publicKey, AlgorithmType algorithm, char const* message,int messageLen){
+SDFCryptoResult SDFCrypto::Hash(char * publicKey, AlgorithmType algorithm, char const* message){
     try{
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         bool isValid;
         unsigned char hashResult[32];
         unsigned int len;
-        unsigned int code = provider.Hash(nullptr,algorithm,fromHex((char *)message).data(),messageLen,hashResult,&len);
+        unsigned int code = provider.Hash(nullptr,algorithm,fromHex((char *)message).data(),getHexByteLen((char *)message),hashResult,&len);
         return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code,nullptr);
     }catch(const char* e){
         return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
@@ -380,13 +380,13 @@ SDFCryptoResult SDFCrypto::Hash(char * publicKey, AlgorithmType algorithm, char 
     
 }
 
-SDFCryptoResult SDFCrypto::HashWithZ(char * key, AlgorithmType algorithm, char const* message,int messageLen){
+SDFCryptoResult SDFCrypto::HashWithZ(char * key, AlgorithmType algorithm, char const* message){
     try{
         SDFCryptoProvider& provider = SDFCryptoProvider::GetInstance();
         bool isValid;
         unsigned char hashResult[32];
         unsigned int len;
-        unsigned int code = provider.Hash(nullptr,algorithm,fromHex((char *)message).data(),messageLen,hashResult,&len);
+        unsigned int code = provider.Hash(nullptr,algorithm,fromHex((char *)message).data(),getHexByteLen((char *)message),hashResult,&len);
         return makeResult(nullptr,nullptr,nullptr,false,toHex(hashResult,32),code,nullptr);
     }catch(const char* e){
         return makeResult(nullptr,nullptr,nullptr,false,nullptr,SDR_OK,(char*)e);
@@ -449,6 +449,12 @@ std::vector<uint8_t> fromHex(char * hexString){
         }  
     }
     return ret;
+}
+
+unsigned int getHexByteLen(char * hexString){
+    size_t len = strlen(hexString);
+    unsigned s = (len>= 2 && hexString[0] == '0' && hexString[1] == 'x') ? 2 : 0;
+    return (len - s + 1) / 2;
 }
 
 int fromHexChar(char _i)

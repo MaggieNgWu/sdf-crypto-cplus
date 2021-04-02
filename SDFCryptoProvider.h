@@ -177,16 +177,17 @@ struct SDFCryptoResult{
 class SDFCrypto{
 public:
     SDFCryptoResult KeyGen(AlgorithmType algorithm);
-    SDFCryptoResult Sign(char * privateKey, AlgorithmType algorithm, char const* digest, int digestLen);
-    SDFCryptoResult Verify(char * publicKey, AlgorithmType algorithm, char const* digest,int digestLen, char const* signature,int signatureLen);
-    SDFCryptoResult Hash(char * key, AlgorithmType algorithm, char const* message,int messageLen);
-    SDFCryptoResult HashWithZ(char * key, AlgorithmType algorithm, char const* message,int messageLen);
+    SDFCryptoResult Sign(char * privateKey, AlgorithmType algorithm, char const* digest);
+    SDFCryptoResult Verify(char * publicKey, AlgorithmType algorithm, char const* digest, char const* signature);
+    SDFCryptoResult Hash(char * key, AlgorithmType algorithm, char const* message);
+    SDFCryptoResult HashWithZ(char * key, AlgorithmType algorithm, char const* message);
 };
 
 SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,bool result,char * hash,unsigned int code,char*);
 char * toHex(unsigned char *data, int len);
 std::vector<uint8_t> fromHex(char * hexString);
 int fromHexChar(char _i);
+unsigned int getHexByteLen(char * hexString);
 int PrintData(char*,unsigned char*,unsigned int, unsigned int);
 int SearchData(unsigned char *, unsigned int , unsigned int);
 }  // namespace crypto

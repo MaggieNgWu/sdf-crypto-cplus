@@ -64,7 +64,7 @@ int main(int, const char* argv[]){
 
     unsigned char bHashStdResult[32] = {0xde,0xbe,0x9f,0xf9,0x22,0x75,0xb8,0xa1,0x38,0x60,0x48,0x89,0xc1,0x8e,0x5a,0x4d,
                                     0x6f,0xdb,0x70,0xe5,0x38,0x7e,0x57,0x65,0x29,0x3d,0xcb,0xa3,0x9c,0x0c,0x57,0x32};
-    SDFCryptoResult result = crypto->Hash(nullptr,SM3,toHex(bHashData,64),64);
+    SDFCryptoResult result = crypto->Hash(nullptr,SM3,toHex(bHashData,64));
     if (result.sdfErrorMessage != nullptr){
         cout << "Get error : " << result.sdfErrorMessage <<endl;
     }else{
@@ -81,7 +81,7 @@ int main(int, const char* argv[]){
         cout << "Get private key : " << result.privateKey << endl;
     }
 
-    SDFCryptoResult signResult = crypto->Sign(result.privateKey,SM2,toHex(bHashStdResult,32),32);
+    SDFCryptoResult signResult = crypto->Sign(result.privateKey,SM2,toHex(bHashStdResult,32));
     cout << "****Sign****" << endl;
     if (signResult.sdfErrorMessage != nullptr){
         cout << "Get error : " << signResult.sdfErrorMessage <<endl;
@@ -90,7 +90,7 @@ int main(int, const char* argv[]){
     }
 
     cout << "****Verify****" << endl;
-    SDFCryptoResult verifyResult = crypto->Verify(result.publicKey,SM2,toHex(bHashStdResult,32),32,signResult.signature,64);
+    SDFCryptoResult verifyResult = crypto->Verify(result.publicKey,SM2,toHex(bHashStdResult,32),signResult.signature);
     if (verifyResult.sdfErrorMessage != nullptr){
         cout << "Get error : " << verifyResult.sdfErrorMessage <<endl;
     }else{
