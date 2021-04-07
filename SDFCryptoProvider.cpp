@@ -100,7 +100,7 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
         SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
         SGD_RV signCode;
         if (key.IsInternalKey()){
-            SGD_RV getAccessRightCode = SDF_GetPrivateKeyAccessRight(sessionHandle, key.Identifier(), (unsigned char *) key.Password(), (unsigned int)strlen(sPrkAuthCode));
+            SGD_RV getAccessRightCode = SDF_GetPrivateKeyAccessRight(sessionHandle, key.Identifier(), (unsigned char *) key.Password(), (unsigned int)strlen(key.Password()));
             if (getAccessRightCode != SDR_OK){
                 m_sessionPool->ReturnSession(sessionHandle);
                 return signCode;
