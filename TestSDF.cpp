@@ -98,7 +98,7 @@ int main(int, const char* argv[]){
 
 
 
-    SDFCryptoResult signResult = SignWithInnerKey(1,"123456",SM2,toHex(bHashStdResult,32));
+    signResult = SignWithInnerKey(1,"123456",SM2,toHex(bHashStdResult,32));
     cout << "****SignInnerKey****" << endl;
     if (signResult.sdfErrorMessage != nullptr){
         cout << "Get error : " << signResult.sdfErrorMessage <<endl;
@@ -107,13 +107,12 @@ int main(int, const char* argv[]){
     }
 
     cout << "****VerifyInnerKey****" << endl;
-    SDFCryptoResult verifyResult = VerifyWithInnerKey(1,SM2,toHex(bHashStdResult,32),signResult.signature);
+    verifyResult = VerifyWithInnerKey(1,SM2,toHex(bHashStdResult,32),signResult.signature);
     if (verifyResult.sdfErrorMessage != nullptr){
         cout << "Get error : " << verifyResult.sdfErrorMessage <<endl;
     }else{
         cout << "Get verify result: " << verifyResult.result << endl;
     }
-
     return 0;
 }
 
