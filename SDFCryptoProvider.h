@@ -58,6 +58,10 @@ public:
         m_keyIndex = keyIndex;
         m_keyPassword = password;
     };
+    Key(const unsigned int keyIndex)
+    {
+        m_keyIndex = keyIndex;
+    };
     unsigned int Identifier() { return m_keyIndex; };
     char * Password() { return m_keyPassword; };
     void setPrivateKey(unsigned char* privateKey, unsigned int len)
@@ -174,15 +178,26 @@ struct SDFCryptoResult{
     char * sdfErrorMessage;
 };
 
-class SDFCrypto{
-public:
-    SDFCryptoResult KeyGen(AlgorithmType algorithm);
-    SDFCryptoResult Sign(char * privateKey, AlgorithmType algorithm, char const* digest);
-    SDFCryptoResult Verify(char * publicKey, AlgorithmType algorithm, char const* digest, char const* signature);
-    SDFCryptoResult Hash(char * key, AlgorithmType algorithm, char const* message);
-    SDFCryptoResult HashWithZ(char * key, AlgorithmType algorithm, char const* message);
-};
+// class SDFCrypto{
+// public:
+//     SDFCryptoResult KeyGen(AlgorithmType algorithm);
+//     SDFCryptoResult Sign(char * privateKey, AlgorithmType algorithm, char const* digest);
+//     SDFCryptoResult Verify(char * publicKey, AlgorithmType algorithm, char const* digest, char const* signature);
+//     SDFCryptoResult Hash(char * key, AlgorithmType algorithm, char const* message);
+//     SDFCryptoResult HashWithZ(char * key, AlgorithmType algorithm, char const* message);
+//     SDFCryptoResult Sign(char * privateKey, AlgorithmType algorithm, char const* digest);
+// };
 
+
+SDFCryptoResult KeyGen(AlgorithmType algorithm);
+SDFCryptoResult Sign(char * privateKey, AlgorithmType algorithm, char const* digest);
+SDFCryptoResult SignWithInnerKey(unsigned int keyIndex, char * password, AlgorithmType algorithm, char const* digest);
+SDFCryptoResult Verify(char * publicKey, AlgorithmType algorithm, char const* digest, char const* signature);
+SDFCryptoResult VerifyWithInnerKey(unsigned int keyIndex, AlgorithmType algorithm, char const* digest,char const* signature);
+SDFCryptoResult Hash(char * key, AlgorithmType algorithm, char const* message);
+
+
+SDFCryptoResult HashWithZ(char * key, AlgorithmType algorithm, char const* message);
 SDFCryptoResult makeResult(char * signature,char * publicKey,char * privateKey,bool result,char * hash,unsigned int code,char*);
 char * toHex(unsigned char *data, int len);
 std::vector<uint8_t> fromHex(char * hexString);
