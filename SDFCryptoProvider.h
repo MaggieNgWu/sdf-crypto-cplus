@@ -45,6 +45,9 @@ public:
     unsigned char * PrivateKey() const { return m_privateKey; }
     int PublicKeyLen() const { return m_publicKeyLen; }
     int PrivateKeyLen() const { return m_privateKeyLen; }
+    unsigned int Identifier() const { return m_keyIndex; };
+    char * Password() const { return m_keyPassword; };
+    bool IsInternalKey() const { return m_isInternalKey; }
     Key(void){};
     Key(unsigned char* privateKey,int privateKeyLen, unsigned char* publicKey, int publicKeyLen)
     {
@@ -57,13 +60,13 @@ public:
     {
         m_keyIndex = keyIndex;
         m_keyPassword = password;
+        m_isInternalKey = true;
     };
     Key(const unsigned int keyIndex)
     {
         m_keyIndex = keyIndex;
+        m_isInternalKey = true;
     };
-    unsigned int Identifier() { return m_keyIndex; };
-    char * Password() { return m_keyPassword; };
     void setPrivateKey(unsigned char* privateKey, unsigned int len)
     {
         m_privateKey = (unsigned char*)malloc(len * sizeof(char));
@@ -84,6 +87,7 @@ private:
     unsigned char * m_publicKey;
     int m_privateKeyLen;
     int m_publicKeyLen;
+    bool m_isInternalKey = false;
 };
 
 class SessionPool

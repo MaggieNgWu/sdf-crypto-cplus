@@ -98,11 +98,22 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
     case SM2:
     {
         SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
-        ECCrefPrivateKey eccKey;
-        eccKey.bits = 32 * 8;
-        memcpy(eccKey.D, key.PrivateKey(), 32);
-        SGD_RV signCode = SDF_ExternalSign_ECC(sessionHandle, SGD_SM2_1, &eccKey,
+        SGD_RV signCode;
+        if (key.IsInternalKey()){
+            SGD_RV getAccessRightCode = SDF_GetPrivateKeyAccessRight(sessionHandle, key.Identifier(), (unsigned char *) key.Password(), (unsigned int)strlen(sPrkAuthCode));
+            if (getAccessRightCode != SDR_OK){
+                m_sessionPool->ReturnSession(sessionHandle);
+                return signCode;
+            }
+            signCode = SDF_InternalSign_ECC(sessionHandle, key.Identifier(),(SGD_UCHAR*)digest, digestLen, (ECCSignature*)signature);
+            SDF_ReleasePrivateKeyAccessRight(sessionHandle, key.Identifier());
+        } else{
+            ECCrefPrivateKey eccKey;
+            eccKey.bits = 32 * 8;
+            memcpy(eccKey.D, key.PrivateKey(), 32);
+            signCode = SDF_ExternalSign_ECC(sessionHandle, SGD_SM2_1, &eccKey,
             (SGD_UCHAR*)digest, digestLen, (ECCSignature*)signature);
+        }
         if (signCode != SDR_OK)
         {
             m_sessionPool->ReturnSession(sessionHandle);
@@ -238,15 +249,21 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
             return SDR_NOTSUPPORT;
         }
         SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
-        ECCrefPublicKey eccKey;
-        eccKey.bits = 32 * 8;
-        memcpy(eccKey.x, key.PublicKey(), 32);
-        memcpy(eccKey.y, key.PublicKey() + 32, 32);
         ECCSignature eccSignature;
         memcpy(eccSignature.r, signature, 32);
         memcpy(eccSignature.s, signature + 32, 32);
-        SGD_RV code = SDF_ExternalVerify_ECC(
+        SGD_RV code;
+
+        if (key.IsInternalKey()){
+            code = SDF_InternalVerify_ECC(sessionHandle, key.Identifier(), (SGD_UCHAR*)digest, digestLen, &eccSignature);
+        } else{
+            ECCrefPublicKey eccKey;
+            eccKey.bits = 32 * 8;
+            memcpy(eccKey.x, key.PublicKey(), 32);
+            memcpy(eccKey.y, key.PublicKey() + 32, 32);
+            code = SDF_ExternalVerify_ECC(
             sessionHandle, SGD_SM2_1, &eccKey, (SGD_UCHAR*)digest, digestLen, &eccSignature);
+        }
         if (code == SDR_OK)
         {
             *result = true;
