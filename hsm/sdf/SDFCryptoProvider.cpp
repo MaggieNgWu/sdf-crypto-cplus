@@ -23,14 +23,17 @@ SessionPool::SessionPool(int size, void* deviceHandle)
     }
     m_size = size;
     m_deviceHandle = deviceHandle;
+    cout << ">> SessionPool::SessionPool(int size, void* deviceHandle)" << endl;
     for (size_t n = 0; n < m_size; n++)
     {
         SGD_HANDLE sessionHandle;
         SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &sessionHandle);
         if (sessionStatus != SDR_OK)
         {
+            cout << "SessionPool open " << n << " session error: " << sessionStatus << endl;
             throw sessionStatus;
         }
+        cout << "SessionPool open " << n << " session " << endl;
         m_pool.push_back(sessionHandle);
     }
 }
@@ -58,11 +61,14 @@ void SessionPool::ReturnSession(void* session)
 
 SDFCryptoProvider::SDFCryptoProvider()
 {
+    cout << ">> SDFCryptoProvider::SDFCryptoProvider()" << endl;
     SGD_RV deviceStatus = SDF_OpenDevice(&m_deviceHandle);
     if (deviceStatus != SDR_OK)
     {
+        cout << "SDF_OpenDevice error: " << deviceStatus << endl;
         throw deviceStatus;
     }
+    cout << "SDF_OpenDevice finish open device " << endl;
     m_sessionPool = new SessionPool(50, m_deviceHandle);
 }
 
@@ -100,6 +106,7 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
     unsigned char const* digest, unsigned int digestLen, unsigned char* signature,
     unsigned int* signatureLen)
 {
+    cout << ">> SDFCryptoProvider::Sign " << endl;
     switch (algorithm)
     {
     case SM2:
@@ -148,28 +155,34 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
     {
     case SM2:
     {
+        cout << ">> SDFCryptoProvider::KeyGen " << endl;
         ECCrefPublicKey pk;
         ECCrefPrivateKey sk;
         SGD_UINT32 keyLen = 256;
 
         SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
+        cout << "KeyGen get session" << endl;
         SGD_RV result = SDF_GenerateKeyPair_ECC(sessionHandle, SGD_SM2_3, keyLen, &pk, &sk);
         if (result != SDR_OK)
         {
+            cout << "KeyGen SDF_GenerateKeyPair_ECC error: " << GetErrorMessage(result) << endl;
             m_sessionPool->ReturnSession(sessionHandle);
             return result;
         }
-
+        PrintData("pk", pk, 64, 4);
+        PrintData("sk", pk, 64, 4);
         std::shared_ptr<const std::vector<byte>> privKey =
             std::make_shared<const std::vector<byte>>((byte*)sk.D, (byte*)sk.D + 32);
 
         std::shared_ptr<vector<byte>> pubKey = std::make_shared<vector<byte>>();
         pubKey->reserve(32 + 32);
         pubKey->insert(pubKey->end(), (byte*)pk.x, (byte*)pk.x + 32);
-        pubKey->insert(pubKey->end(), (byte*)pk.y, (byte*)pk.y + 32);
+        // pubKey->insert(pubKey->end(), (byte*)pk.y, (byte*)pk.y + 32);
 
         key->setPrivateKey(privKey);
         key->setPublicKey(pubKey);
+        PrintData("return value key.private", (unsigned char*)key->privateKey()->data(), 64, 4);
+        PrintData("return value key.private", (unsigned char*)key->privateKey()->data(), 64, 4);
         m_sessionPool->ReturnSession(sessionHandle);
         return SDR_OK;
     }
