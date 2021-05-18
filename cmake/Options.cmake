@@ -11,7 +11,7 @@ macro(add_option O DEF)
 endmacro()
 
 add_option(BUILD_SDF_OLD OFF)
-add_option(BUILD_SDF_0018 OFF)
+add_option(BUILD_SDF_0018 ON)
 add_option(BUILD_SHARED_LIBS OFF)
 
 if(BUILD_SDF_OLD)

@@ -123,8 +123,17 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
                 m_sessionPool->ReturnSession(sessionHandle);
                 return getAccessRightCode;
             }
+            #if(SDF_0018)
+            memcpy(eccKey.D + 32, key.privateKey()->data(), 32);
+            ECCSignature eccSignature;
+            signCode = SDF_InternalSign_ECC(sessionHandle, key.identifier(), (SGD_UCHAR*)digest,
+                digestLen, &eccSignature);
+            memcpy(signature, eccSignature.r+32,32)
+            memcpy(signature+32, eccSignature.s+32,32)
+            #else
             signCode = SDF_InternalSign_ECC(sessionHandle, key.identifier(), (SGD_UCHAR*)digest,
                 digestLen, (ECCSignature*)signature);
+            #endif
             SDF_ReleasePrivateKeyAccessRight(sessionHandle, key.identifier());
         }
         else     
@@ -178,14 +187,22 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
             m_sessionPool->ReturnSession(sessionHandle);
             return result;
         }
-        std::shared_ptr<const std::vector<byte>> privKey =
-            std::make_shared<const std::vector<byte>>((byte*)sk.D, (byte*)sk.D + 32);
+        #if(SDF_0018)
+            std::shared_ptr<const std::vector<byte>> privKey =
+            std::make_shared<const std::vector<byte>>((byte*)sk.D+32, (byte*)sk.D + 64);
 
-        std::shared_ptr<vector<byte>> pubKey = std::make_shared<vector<byte>>();
-        pubKey->reserve(32 + 32);
-        pubKey->insert(pubKey->end(), (byte*)pk.x, (byte*)pk.x + 32);
-        // pubKey->insert(pubKey->end(), (byte*)pk.y, (byte*)pk.y + 32);
-
+            std::shared_ptr<vector<byte>> pubKey = std::make_shared<vector<byte>>();
+            pubKey->reserve(32 + 32);
+            pubKey->insert(pubKey->end(), (byte*)pk.x+32, (byte*)pk.x + 64);
+            pubKey->insert(pubKey->end(), (byte*)pk.y+32, (byte*)pk.y + 64);
+        #else
+            std::shared_ptr<const std::vector<byte>> privKey =
+                std::make_shared<const std::vector<byte>>((byte*)sk.D, (byte*)sk.D + 32);
+            std::shared_ptr<vector<byte>> pubKey = std::make_shared<vector<byte>>();
+            pubKey->reserve(32 + 32);
+            pubKey->insert(pubKey->end(), (byte*)pk.x, (byte*)pk.x + 32);
+            pubKey->insert(pubKey->end(), (byte*)pk.y, (byte*)pk.y + 32);
+        #endif
         key->setPrivateKey(privKey);
         key->setPublicKey(pubKey);
         m_sessionPool->ReturnSession(sessionHandle);
@@ -286,10 +303,17 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
         {
             return SDR_NOTSUPPORT;
         }
+        
         SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
         ECCSignature eccSignature;
-        memcpy(eccSignature.r, signature, 32);
-        memcpy(eccSignature.s, signature + 32, 32);
+        #if(SDF_0018)
+            eccSignature
+            memcpy(eccSignature.r+32, signature, 32);
+            memcpy(eccSignature.s+32, signature + 32, 32);
+        #else
+            memcpy(eccSignature.r, signature, 32);
+            memcpy(eccSignature.s, signature + 32, 32);
+        #endif
         SGD_RV code;
 
         if (key.isInternalKey())
@@ -300,9 +324,15 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
         else
         {
             ECCrefPublicKey eccKey;
-            eccKey.bits = 32 * 8;
+             #if(SDF_0018)
+            eccKey.bits = 64 * 8;
+            memcpy(eccKey.x+32, key.publicKey()->data(), 32);
+            memcpy(eccKey.y+32, key.publicKey()->data() + 32, 32);
+            #else
+                eccKey.bits = 32 * 8;
             memcpy(eccKey.x, key.publicKey()->data(), 32);
             memcpy(eccKey.y, key.publicKey()->data() + 32, 32);
+            #endif
             code = SDF_ExternalVerify_ECC(
                 sessionHandle, SGD_SM2_1, &eccKey, (SGD_UCHAR*)digest, digestLen, &eccSignature);
         }
@@ -341,10 +371,15 @@ unsigned int SDFCryptoProvider::ExportInternalPublicKey(Key& key, AlgorithmType 
         }
 
         std::shared_ptr<vector<byte>> pubKey = std::make_shared<vector<byte>>();
+        #if(SDF_0018)
+        pubKey->reserve(32 + 32);
+        pubKey->insert(pubKey->end(), (byte*)pk.x+32, (byte*)pk.x + 64);
+        pubKey->insert(pubKey->end(), (byte*)pk.y+32, (byte*)pk.y + 64);
+        #else
         pubKey->reserve(32 + 32);
         pubKey->insert(pubKey->end(), (byte*)pk.x, (byte*)pk.x + 32);
         pubKey->insert(pubKey->end(), (byte*)pk.y, (byte*)pk.y + 32);
-
+        #endif
         key.setPublicKey(pubKey);
         m_sessionPool->ReturnSession(sessionHandle);
         return result;
