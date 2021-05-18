@@ -127,13 +127,22 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
                 digestLen, (ECCSignature*)signature);
             SDF_ReleasePrivateKeyAccessRight(sessionHandle, key.identifier());
         }
-        else
+        else     
         {
             ECCrefPrivateKey eccKey;
-            eccKey.bits = 32 * 8;
+            eccKey.bits = 64 * 8;
+            #if(SDF_0018)
+            memcpy(eccKey.D + 32, key.privateKey()->data(), 32);
+            ECCSignature eccSignature;
+            signCode = SDF_ExternalSign_ECC(sessionHandle, SGD_SM2_1, &eccKey, (SGD_UCHAR*)digest,
+                digestLen, &eccSignature);
+            memcpy(signature, eccSignature.r+32,32)
+            memcpy(signature+32, eccSignature.s+32,32)
+            #else
             memcpy(eccKey.D, key.privateKey()->data(), 32);
             signCode = SDF_ExternalSign_ECC(sessionHandle, SGD_SM2_1, &eccKey, (SGD_UCHAR*)digest,
                 digestLen, (ECCSignature*)signature);
+            #endif
         }
         if (signCode != SDR_OK)
         {
@@ -169,8 +178,6 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
             m_sessionPool->ReturnSession(sessionHandle);
             return result;
         }
-        PrintData("pk", pk, 64, 4);
-        PrintData("sk", pk, 64, 4);
         std::shared_ptr<const std::vector<byte>> privKey =
             std::make_shared<const std::vector<byte>>((byte*)sk.D, (byte*)sk.D + 32);
 
@@ -181,8 +188,6 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
 
         key->setPrivateKey(privKey);
         key->setPublicKey(pubKey);
-        PrintData("return value key.private", (unsigned char*)key->privateKey()->data(), 64, 4);
-        PrintData("return value key.private", (unsigned char*)key->privateKey()->data(), 64, 4);
         m_sessionPool->ReturnSession(sessionHandle);
         return SDR_OK;
     }
