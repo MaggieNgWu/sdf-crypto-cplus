@@ -34,18 +34,29 @@ namespace hsm
 {
 namespace sdf
 {
+class Session
+{
+public:
+    Session(void* deviceHandle);
+    virtual ~Session();
+    void* getSessionHandler();
+
+private:
+    void* m_session;
+};
+
 class SessionPool
 {
 public:
     SessionPool(int size, void* deviceHandle);
     virtual ~SessionPool();
-    void* GetSession();
-    void ReturnSession(void* session);
+    std::shared_ptr<Session> GetSession();
+    void ReturnSession(std::shared_ptr<Session>);
 
 private:
     void* m_deviceHandle;
     size_t m_size;
-    std::list<void*> m_pool;
+    std::list<std::shared_ptr<Session> > m_pool;
     std::mutex mtx;
     std::condition_variable cv;
 };
@@ -64,6 +75,7 @@ private:
     ~SDFCryptoProvider();
     SDFCryptoProvider(const SDFCryptoProvider&);
     SDFCryptoProvider& operator=(const SDFCryptoProvider&);
+    unsigned int returnSessionAndCode(std::shared_ptr<Session> session, unsigned int code);
 
 public:
     /**

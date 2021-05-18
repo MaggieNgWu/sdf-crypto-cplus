@@ -16,40 +16,55 @@ namespace hsm
 {
 namespace sdf
 {
+Session::Session(void* deviceHandle)
+{
+    SGD_RV sessionStatus = SDF_OpenSession(deviceHandle, &m_session);
+    if (sessionStatus != SDR_OK)
+    {
+        throw "Open session failed, error code:" + std::to_string(sessionStatus);
+    }
+}
+Session::~Session()
+{
+    SGD_RV sessionStatus = SDF_CloseSession(m_session);
+    if (sessionStatus != SDR_OK)
+    {
+        throw "Close session failed, error code:" + std::to_string(sessionStatus);
+    }
+}
+void* Session::getSessionHandler()
+{
+    return m_session;
+}
+
 SessionPool::SessionPool(int size, void* deviceHandle)
 {
     if(size <= 0){
-        throw "HSM device session pool size should be bigger than 0";
+        throw "HSM device session pool size should be larger than 0";
     }
     m_size = size;
     m_deviceHandle = deviceHandle;
     for (size_t n = 0; n < m_size; n++)
     {
-        SGD_HANDLE sessionHandle;
-        SGD_RV sessionStatus = SDF_OpenSession(m_deviceHandle, &sessionHandle);
-        if (sessionStatus != SDR_OK)
-        {
-            throw sessionStatus;
-        }
-        m_pool.push_back(sessionHandle);
+        std::shared_ptr<Session> session = std::make_shared<Session>(m_deviceHandle);
+        m_pool.push_back(session);
     }
 }
 SessionPool::~SessionPool()
 {
-    for(auto session : m_pool) {  
-        SDF_CloseSession(session); 
-    } 
+    std::unique_lock<std::mutex> l(mtx);
+    cout << "session pool size: " << m_pool.size() << endl;
 }
-void* SessionPool::GetSession()
+std::shared_ptr<Session> SessionPool::GetSession()
 {
     std::unique_lock<std::mutex> l(mtx);
     cv.wait(l, [this]()->bool { return !m_pool.empty(); });
-    SGD_HANDLE session = m_pool.front();
+    std::shared_ptr<Session> session = m_pool.front();
     m_pool.pop_front();
     return session;
 }
 
-void SessionPool::ReturnSession(void* session)
+void SessionPool::ReturnSession(std::shared_ptr<Session> session)
 {
     std::unique_lock<std::mutex> l(mtx);
     m_pool.push_back(session);
@@ -58,12 +73,7 @@ void SessionPool::ReturnSession(void* session)
 
 SDFCryptoProvider::SDFCryptoProvider()
 {
-    SGD_RV deviceStatus = SDF_OpenDevice(&m_deviceHandle);
-    if (deviceStatus != SDR_OK)
-    {
-        throw deviceStatus;
-    }
-    m_sessionPool = new SessionPool(50, m_deviceHandle);
+    SDFCryptoProvider(50);
 }
 
 SDFCryptoProvider::SDFCryptoProvider(int sessionPoolSize)
@@ -104,38 +114,42 @@ unsigned int SDFCryptoProvider::Sign(Key const& key, AlgorithmType algorithm,
     {
     case SM2:
     {
-        SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
+        std::shared_ptr<Session> session = m_sessionPool->GetSession();
         SGD_RV signCode;
         if (key.isInternalKey())
         {
+            // Get private key access right
             SGD_RV getAccessRightCode =
-                SDF_GetPrivateKeyAccessRight(sessionHandle, key.identifier(),
+                SDF_GetPrivateKeyAccessRight(session->getSessionHandler(), key.identifier(),
                     (SGD_UCHAR*)key.password()->data(), (SGD_UINT32)key.password()->size());
+
             if (getAccessRightCode != SDR_OK)
             {
-                m_sessionPool->ReturnSession(sessionHandle);
-                return getAccessRightCode;
+                return returnSessionAndCode(session, getAccessRightCode);
             }
-            signCode = SDF_InternalSign_ECC(sessionHandle, key.identifier(), (SGD_UCHAR*)digest,
-                digestLen, (ECCSignature*)signature);
-            SDF_ReleasePrivateKeyAccessRight(sessionHandle, key.identifier());
+
+            // Sign
+            signCode = SDF_InternalSign_ECC(session->getSessionHandler(), key.identifier(),
+                (SGD_UCHAR*)digest, digestLen, (ECCSignature*)signature);
+
+            // Return key access right
+            SDF_ReleasePrivateKeyAccessRight(session->getSessionHandler(), key.identifier());
         }
         else
         {
             ECCrefPrivateKey eccKey;
             eccKey.bits = 32 * 8;
             memcpy(eccKey.D, key.privateKey()->data(), 32);
-            signCode = SDF_ExternalSign_ECC(sessionHandle, SGD_SM2_1, &eccKey, (SGD_UCHAR*)digest,
-                digestLen, (ECCSignature*)signature);
+            // Sign with external key
+            signCode = SDF_ExternalSign_ECC(session->getSessionHandler(), SGD_SM2_1, &eccKey,
+                (SGD_UCHAR*)digest, digestLen, (ECCSignature*)signature);
         }
         if (signCode != SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return signCode;
+            return returnSessionAndCode(session, signCode);
         }
         *signatureLen = 64;
-        m_sessionPool->ReturnSession(sessionHandle);
-        return SDR_OK;
+        return returnSessionAndCode(session, SDR_OK);
     }
     default:
         return SDR_ALGNOTSUPPORT;
@@ -151,13 +165,14 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
         ECCrefPublicKey pk;
         ECCrefPrivateKey sk;
         SGD_UINT32 keyLen = 256;
+        std::shared_ptr<Session> session = m_sessionPool->GetSession();
 
-        SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
-        SGD_RV result = SDF_GenerateKeyPair_ECC(sessionHandle, SGD_SM2_3, keyLen, &pk, &sk);
+        // Generate key pair
+        SGD_RV result =
+            SDF_GenerateKeyPair_ECC(session->getSessionHandler(), SGD_SM2_3, keyLen, &pk, &sk);
         if (result != SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return result;
+            return returnSessionAndCode(session, result);
         }
 
         std::shared_ptr<const std::vector<byte>> privKey =
@@ -170,8 +185,7 @@ unsigned int SDFCryptoProvider::KeyGen(AlgorithmType algorithm, Key* key)
 
         key->setPrivateKey(privKey);
         key->setPublicKey(pubKey);
-        m_sessionPool->ReturnSession(sessionHandle);
-        return SDR_OK;
+        return returnSessionAndCode(session, SDR_OK);
     }
     default:
         return SDR_ALGNOTSUPPORT;
@@ -185,29 +199,24 @@ unsigned int SDFCryptoProvider::Hash(Key*, AlgorithmType algorithm, unsigned cha
     {
     case SM3:
     {
-        SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
-        SGD_RV code = SDF_HashInit(sessionHandle, SGD_SM3, NULL, NULL, 0);
+        std::shared_ptr<Session> session = m_sessionPool->GetSession();
+        // Hash init
+        SGD_RV code = SDF_HashInit(session->getSessionHandler(), SGD_SM3, NULL, NULL, 0);
         if (code != SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return code;
+            return returnSessionAndCode(session, code);
         }
 
-        code = SDF_HashUpdate(sessionHandle, (SGD_UCHAR*)message, messageLen);
+        // Hash update
+        code = SDF_HashUpdate(session->getSessionHandler(), (SGD_UCHAR*)message, messageLen);
         if (code != SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return code;
+            return returnSessionAndCode(session, code);
         }
 
-        code = SDF_HashFinal(sessionHandle, digest, digestLen);
-        if (code != SDR_OK)
-        {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return code;
-        }
-        m_sessionPool->ReturnSession(sessionHandle);
-        return code;
+        // Hash final
+        code = SDF_HashFinal(session->getSessionHandler(), digest, digestLen);
+        return returnSessionAndCode(session, code);
     }
     default:
         return SDR_ALGNOTSUPPORT;
@@ -221,35 +230,33 @@ unsigned int SDFCryptoProvider::HashWithZ(Key*, AlgorithmType algorithm,
     {
     case SM3:
     {
-        SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
-        SGD_RV code = SDF_HashInit(sessionHandle, SGD_SM3, NULL, NULL, 0);
+        // Get session
+        std::shared_ptr<Session> session = m_sessionPool->GetSession();
+
+        // Hash init
+        SGD_RV code = SDF_HashInit(session->getSessionHandler(), SGD_SM3, NULL, NULL, 0);
         if (code != SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return code;
-        }
-        code = SDF_HashUpdate(sessionHandle, (SGD_UCHAR*)zValue, zValueLen);
-        if (code != SDR_OK)
-        {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return code;
+            return returnSessionAndCode(session, code);
         }
 
-        code = SDF_HashUpdate(sessionHandle, (SGD_UCHAR*)message, messageLen);
+        // Hash update
+        code = SDF_HashUpdate(session->getSessionHandler(), (SGD_UCHAR*)zValue, zValueLen);
         if (code != SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return code;
+            return returnSessionAndCode(session, code);
         }
 
-        code = SDF_HashFinal(sessionHandle, digest, digestLen);
+        code = SDF_HashUpdate(session->getSessionHandler(), (SGD_UCHAR*)message, messageLen);
         if (code != SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return code;
+            return returnSessionAndCode(session, code);
         }
-        m_sessionPool->ReturnSession(sessionHandle);
-        return code;
+
+        // Hash final
+        code = SDF_HashFinal(session->getSessionHandler(), digest, digestLen);
+
+        return returnSessionAndCode(session, code);
     }
     default:
         return SDR_ALGNOTSUPPORT;
@@ -268,16 +275,18 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
         {
             return SDR_NOTSUPPORT;
         }
-        SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
+        std::shared_ptr<Session> session = m_sessionPool->GetSession();
         ECCSignature eccSignature;
         memcpy(eccSignature.r, signature, 32);
         memcpy(eccSignature.s, signature + 32, 32);
         SGD_RV code;
 
+        // Verify signature
         if (key.isInternalKey())
         {
-            code = SDF_InternalVerify_ECC(
-                sessionHandle, key.identifier(), (SGD_UCHAR*)digest, digestLen, &eccSignature);
+            // Verify with internal public key
+            code = SDF_InternalVerify_ECC(session->getSessionHandler(), key.identifier(),
+                (SGD_UCHAR*)digest, digestLen, &eccSignature);
         }
         else
         {
@@ -285,8 +294,10 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
             eccKey.bits = 32 * 8;
             memcpy(eccKey.x, key.publicKey()->data(), 32);
             memcpy(eccKey.y, key.publicKey()->data() + 32, 32);
-            code = SDF_ExternalVerify_ECC(
-                sessionHandle, SGD_SM2_1, &eccKey, (SGD_UCHAR*)digest, digestLen, &eccSignature);
+
+            // Verify with exturnal public key
+            code = SDF_ExternalVerify_ECC(session->getSessionHandler(), SGD_SM2_1, &eccKey,
+                (SGD_UCHAR*)digest, digestLen, &eccSignature);
         }
         if (code == SDR_OK)
         {
@@ -296,8 +307,7 @@ unsigned int SDFCryptoProvider::Verify(Key const& key, AlgorithmType algorithm,
         {
             *result = false;
         }
-        m_sessionPool->ReturnSession(sessionHandle);
-        return code;
+        return returnSessionAndCode(session, code);
     }
     default:
         return SDR_ALGNOTSUPPORT;
@@ -314,22 +324,22 @@ unsigned int SDFCryptoProvider::ExportInternalPublicKey(Key& key, AlgorithmType 
             return SDR_ALGNOTSUPPORT;
         }
         ECCrefPublicKey pk;
-        SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
-        SGD_RV result = SDF_ExportSignPublicKey_ECC(sessionHandle, key.identifier(), &pk);
+        std::shared_ptr<Session> session = m_sessionPool->GetSession();
+
+        // Export key
+        SGD_RV result =
+            SDF_ExportSignPublicKey_ECC(session->getSessionHandler(), key.identifier(), &pk);
+
         if (result != SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return result;
+            return returnSessionAndCode(session, result);
         }
-
         std::shared_ptr<vector<byte>> pubKey = std::make_shared<vector<byte>>();
         pubKey->reserve(32 + 32);
         pubKey->insert(pubKey->end(), (byte*)pk.x, (byte*)pk.x + 32);
         pubKey->insert(pubKey->end(), (byte*)pk.y, (byte*)pk.y + 32);
-
         key.setPublicKey(pubKey);
-        m_sessionPool->ReturnSession(sessionHandle);
-        return result;
+        return returnSessionAndCode(session, result);
     }
     default:
         return SDR_ALGNOTSUPPORT;
@@ -344,20 +354,27 @@ unsigned int SDFCryptoProvider::Encrypt(Key const& key, AlgorithmType algorithm,
     {
     case SM4_CBC:
     {
-        SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
+        std::shared_ptr<Session> session = m_sessionPool->GetSession();
+
+        // Get key handler
         SGD_HANDLE keyHandler;
-        SGD_RV importResult = SDF_ImportKey(sessionHandle, (SGD_UCHAR*)key.symmetrickey()->data(),
-            key.symmetrickey()->size(), &keyHandler);
+        SGD_RV importResult = SDF_ImportKey(session->getSessionHandler(),
+            (SGD_UCHAR*)key.symmetrickey()->data(), key.symmetrickey()->size(), &keyHandler);
+
         if (!importResult == SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return importResult;
+            return returnSessionAndCode(session, importResult);
         }
-        SGD_RV result = SDF_Encrypt(sessionHandle, keyHandler, SGD_SM4_CBC, (SGD_UCHAR*)iv,
-            (SGD_UCHAR*)plantext, plantextLen, (SGD_UCHAR*)cyphertext, cyphertextLen);
-        SDF_DestroyKey(sessionHandle, keyHandler);
-        m_sessionPool->ReturnSession(sessionHandle);
-        return result;
+
+        // Encrypt
+        SGD_RV result =
+            SDF_Encrypt(session->getSessionHandler(), keyHandler, SGD_SM4_CBC, (SGD_UCHAR*)iv,
+                (SGD_UCHAR*)plantext, plantextLen, (SGD_UCHAR*)cyphertext, cyphertextLen);
+
+
+        // Destroy key
+        SDF_DestroyKey(session->getSessionHandler(), keyHandler);
+        return returnSessionAndCode(session, result);
     }
     default:
         return SDR_ALGNOTSUPPORT;
@@ -372,20 +389,27 @@ unsigned int SDFCryptoProvider::Decrypt(Key const& key, AlgorithmType algorithm,
     {
     case SM4_CBC:
     {
-        SGD_HANDLE sessionHandle = m_sessionPool->GetSession();
+        std::shared_ptr<Session> session = m_sessionPool->GetSession();
         SGD_HANDLE keyHandler;
-        SGD_RV importResult = SDF_ImportKey(sessionHandle, (SGD_UCHAR*)key.symmetrickey()->data(),
-            key.symmetrickey()->size(), &keyHandler);
+
+        // Import key
+        SGD_RV importResult = SDF_ImportKey(session->getSessionHandler(),
+            (SGD_UCHAR*)key.symmetrickey()->data(), key.symmetrickey()->size(), &keyHandler);
+
         if (!importResult == SDR_OK)
         {
-            m_sessionPool->ReturnSession(sessionHandle);
-            return importResult;
+            return returnSessionAndCode(session, importResult);
         }
-        SGD_RV result = SDF_Decrypt(sessionHandle, keyHandler, SGD_SM4_CBC, (SGD_UCHAR*)iv,
-            (SGD_UCHAR*)cyphertext, cyphertextLen, (SGD_UCHAR*)plantext, plantextLen); 
-        SDF_DestroyKey(sessionHandle, keyHandler);
-        m_sessionPool->ReturnSession(sessionHandle);
-        return result;
+        // Decrypt
+        SGD_RV result =
+            SDF_Decrypt(session->getSessionHandler(), keyHandler, SGD_SM4_CBC, (SGD_UCHAR*)iv,
+                (SGD_UCHAR*)cyphertext, cyphertextLen, (SGD_UCHAR*)plantext, plantextLen);
+
+
+        // Destory key
+        SDF_DestroyKey(session->getSessionHandler(), keyHandler);
+
+        return returnSessionAndCode(session, result);
     }
     default:
         return SDR_ALGNOTSUPPORT;
@@ -444,6 +468,13 @@ char* SDFCryptoProvider::GetErrorMessage(unsigned int code)
         strcpy(c_err, err.c_str());
         return c_err;
     }
+}
+
+unsigned int SDFCryptoProvider::returnSessionAndCode(
+    std::shared_ptr<Session> session, unsigned int code)
+{
+    m_sessionPool->ReturnSession(session);
+    return code;
 }
 
 SDFCryptoResult KeyGen(AlgorithmType algorithm)
